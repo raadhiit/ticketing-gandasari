@@ -6,6 +6,7 @@ use App\Actions\Ticket\CreateTicketAction;
 use App\Models\Department;
 use App\Models\Ticket;
 use App\Models\TicketCategory;
+use Flux;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
@@ -26,7 +27,7 @@ class Create extends Component
     {
         return [
             'title' => ['required', 'min:5', 'max:200'],
-            'description' => ['required', 'min:10'],
+            'description' => ['required'],
             'category_id' => ['nullable', 'exists:ticket_categories,id'],
             'department_id' => ['nullable', 'exists:departments,id'],
             'priority' => ['required', 'in:LOW,MEDIUM,HIGH,URGENT'],

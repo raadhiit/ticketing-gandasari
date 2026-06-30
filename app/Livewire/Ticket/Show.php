@@ -107,7 +107,7 @@ class Show extends Component
             $this->authorize('close', $this->ticket);
             $action = app(ChangeStatusAction::class);
             $action->execute($this->ticket, $newStatus, auth()->user());
-            Flux::toast('Status diubah ke '.$newStatus->label() ?? $newStatus->value, variant: 'success');
+            Flux::toast('Status diubah ke '.str_replace('_', ' ', $newStatus->value), variant: 'success');
         }
     }
 

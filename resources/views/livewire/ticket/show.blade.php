@@ -1,11 +1,11 @@
 <div>
-    <div class="flex items-start gap-4 mb-6" wire:poll.30s="checkNewComments">
-        <div class="flex-1">
-            <flux:heading size="xl" level="1">{{ $ticket->ticket_number }}</flux:heading>
-            <flux:subheading>{{ $ticket->title }}</flux:subheading>
+    <div class="flex items-start gap-4 mb-6 flex-wrap">
+        <div class="flex-1 min-w-0" wire:poll.15s="checkNewComments">
+            <flux:heading size="xl" level="1" class="dark:text-white">{{ $ticket->ticket_number }}</flux:heading>
+            <flux:subheading class="dark:text-zinc-400">{{ $ticket->title }}</flux:subheading>
         </div>
 
-        <div class="flex gap-2">
+        <div class="flex gap-2 flex-shrink-0">
             @can('close', $ticket)
                 <flux:dropdown>
                     <flux:button icon="chevron-down">{{ __('Ubah Status') }}</flux:button>
@@ -33,72 +33,76 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-3 gap-6">
-        <div class="col-span-2 space-y-6">
-            <flux:card>
-                <flux:card.header>
-                    <flux:heading>{{ __('Detail Ticket') }}</flux:heading>
-                </flux:card.header>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 space-y-6">
+            <flux:card class="dark:bg-zinc-900 dark:border-zinc-700">
+                <div class="p-6 border-b border-zinc-200 dark:border-zinc-700">
+                    <flux:heading class="dark:text-white">{{ __('Detail Ticket') }}</flux:heading>
+                </div>
 
-                <flux:card.content class="space-y-4">
-                    <p class="whitespace-pre-wrap">{{ $ticket->description }}</p>
+                <div class="p-6 space-y-4">
+                    <p class="whitespace-pre-wrap text-zinc-800 dark:text-zinc-200 leading-relaxed">{{ $ticket->description }}</p>
 
                     <div class="grid grid-cols-2 gap-4 text-sm">
                         <div>
-                            <span class="text-zinc-500">{{ __('Requester') }}:</span>
-                            <span class="font-medium">{{ $ticket->requester?->name }}</span>
+                            <span class="text-zinc-500 dark:text-zinc-400">{{ __('Requester') }}:</span>
+                            <span class="font-medium text-zinc-900 dark:text-white ml-1">{{ $ticket->requester?->name }}</span>
                         </div>
                         <div>
-                            <span class="text-zinc-500">{{ __('Departemen') }}:</span>
-                            <span class="font-medium">{{ $ticket->department?->name ?? '-' }}</span>
+                            <span class="text-zinc-500 dark:text-zinc-400">{{ __('Departemen') }}:</span>
+                            <span class="font-medium text-zinc-900 dark:text-white ml-1">{{ $ticket->department?->name ?? '-' }}</span>
                         </div>
                         <div>
-                            <span class="text-zinc-500">{{ __('Kategori') }}:</span>
-                            <span class="font-medium">{{ $ticket->category?->name ?? '-' }}</span>
+                            <span class="text-zinc-500 dark:text-zinc-400">{{ __('Kategori') }}:</span>
+                            <span class="font-medium text-zinc-900 dark:text-white ml-1">{{ $ticket->category?->name ?? '-' }}</span>
                         </div>
                         <div>
-                            <span class="text-zinc-500">{{ __('Dibuat') }}:</span>
-                            <span class="font-medium">{{ $ticket->created_at->format('d M Y H:i') }}</span>
+                            <span class="text-zinc-500 dark:text-zinc-400">{{ __('Dibuat') }}:</span>
+                            <span class="font-medium text-zinc-900 dark:text-white ml-1">{{ $ticket->created_at->format('d M Y H:i') }}</span>
                         </div>
                         <div>
-                            <span class="text-zinc-500">{{ __('Prioritas') }}:</span>
-                            <flux:badge color="{{ $ticket->priority === 'URGENT' ? 'red' : ($ticket->priority === 'HIGH' ? 'orange' : ($ticket->priority === 'MEDIUM' ? 'blue' : 'slate')) }}" size="sm">
-                                {{ $ticket->priority }}
-                            </flux:badge>
+                            <span class="text-zinc-500 dark:text-zinc-400">{{ __('Prioritas') }}:</span>
+                            <span class="ml-1">
+                                <flux:badge color="{{ $ticket->priority === 'URGENT' ? 'red' : ($ticket->priority === 'HIGH' ? 'orange' : ($ticket->priority === 'MEDIUM' ? 'blue' : 'slate')) }}" size="sm">
+                                    {{ $ticket->priority }}
+                                </flux:badge>
+                            </span>
                         </div>
                         <div>
-                            <span class="text-zinc-500">{{ __('Status') }}:</span>
-                            <flux:badge color="{{ $ticket->status === 'OPEN' ? 'green' : ($ticket->status === 'CLOSED' ? 'slate' : 'yellow') }}" size="sm">
-                                {{ str_replace('_', ' ', $ticket->status) }}
-                            </flux:badge>
+                            <span class="text-zinc-500 dark:text-zinc-400">{{ __('Status') }}:</span>
+                            <span class="ml-1">
+                                <flux:badge color="{{ $ticket->status === 'OPEN' ? 'green' : ($ticket->status === 'CLOSED' ? 'slate' : 'yellow') }}" size="sm">
+                                    {{ str_replace('_', ' ', $ticket->status) }}
+                                </flux:badge>
+                            </span>
                         </div>
                         @if ($currentAssignment)
                             <div>
-                                <span class="text-zinc-500">{{ __('Assigned To') }}:</span>
-                                <span class="font-medium">{{ $currentAssignment->assignedTo->name }}</span>
+                                <span class="text-zinc-500 dark:text-zinc-400">{{ __('Assigned To') }}:</span>
+                                <span class="font-medium text-zinc-900 dark:text-white ml-1">{{ $currentAssignment->assignedTo->name }}</span>
                             </div>
                         @endif
                         @if ($ticket->closed_at)
                             <div>
-                                <span class="text-zinc-500">{{ __('Ditutup') }}:</span>
-                                <span class="font-medium">{{ $ticket->closed_at->format('d M Y H:i') }}</span>
+                                <span class="text-zinc-500 dark:text-zinc-400">{{ __('Ditutup') }}:</span>
+                                <span class="font-medium text-zinc-900 dark:text-white ml-1">{{ $ticket->closed_at->format('d M Y H:i') }}</span>
                             </div>
                         @endif
                     </div>
-                </flux:card.content>
+                </div>
             </flux:card>
 
             @can('assign', $ticket)
-                <flux:card>
-                    <flux:card.header>
-                        <flux:heading>{{ __('Assign Ticket') }}</flux:heading>
-                    </flux:card.header>
+                <flux:card class="dark:bg-zinc-900 dark:border-zinc-700">
+                    <div class="p-6 border-b border-zinc-200 dark:border-zinc-700">
+                        <flux:heading class="dark:text-white">{{ __('Assign Ticket') }}</flux:heading>
+                    </div>
 
-                    <flux:card.content>
-                        <form wire:submit="assign" class="flex items-end gap-4">
-                            <flux:field class="flex-1">
-                                <flux:label>{{ __('Pilih Agent') }}</flux:label>
-                                <flux:select wire:model="assignedUserId">
+                    <div class="p-6">
+                        <form wire:submit="assign" class="flex items-end gap-4 flex-wrap">
+                            <flux:field class="flex-1 min-w-60">
+                                <flux:label class="dark:text-zinc-300">{{ __('Pilih Agent') }}</flux:label>
+                                <flux:select wire:model="assignedUserId" class="dark:bg-zinc-800 dark:border-zinc-600 dark:text-white">
                                     <option value="">{{ __('Pilih agent...') }}</option>
                                     @foreach ($agents as $agent)
                                         <option value="{{ $agent->id }}">{{ $agent->name }} ({{ $agent->department?->name ?? '-' }})</option>
@@ -109,44 +113,47 @@
 
                             <flux:button type="submit" variant="primary">{{ __('Assign') }}</flux:button>
                         </form>
-                    </flux:card.content>
+                    </div>
                 </flux:card>
             @endcan
 
             @if ($hasNewComments)
-                <flux:callout variant="info" icon="info">
+                <div class="rounded-lg bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 p-4 text-sm text-blue-700 dark:text-blue-300">
                     {{ __('Ada komentar baru.') }}
-                </flux:callout>
+                </div>
             @endif
 
-            <flux:card>
-                <flux:card.header>
-                    <flux:heading>{{ __('Komentar') }}</flux:heading>
-                </flux:card.header>
+            <flux:card class="dark:bg-zinc-900 dark:border-zinc-700">
+                <div class="p-6 border-b border-zinc-200 dark:border-zinc-700">
+                    <flux:heading class="dark:text-white">{{ __('Komentar') }}</flux:heading>
+                </div>
 
-                <flux:card.content class="space-y-4">
+                <div class="p-6 space-y-4">
                     @forelse ($comments as $comment)
-                        <div class="border-b border-zinc-200 pb-4 last:border-0 dark:border-zinc-700">
+                        <div class="border-b border-zinc-100 dark:border-zinc-700 pb-4 last:border-0">
                             <div class="flex items-center gap-2 mb-1">
-                                <span class="font-medium text-sm">{{ $comment->user->name }}</span>
-                                <span class="text-xs text-zinc-500">{{ $comment->created_at->diffForHumans() }}</span>
+                                <span class="font-medium text-sm text-zinc-900 dark:text-zinc-100">{{ $comment->user->name }}</span>
+                                <span class="text-xs text-zinc-500 dark:text-zinc-500">{{ $comment->created_at->diffForHumans() }}</span>
                                 @if ($comment->is_internal)
                                     <flux:badge color="orange" size="sm">{{ __('Internal') }}</flux:badge>
                                 @endif
                             </div>
-                            <p class="text-sm whitespace-pre-wrap">{{ $comment->comment }}</p>
+                            <p class="text-sm text-zinc-700 dark:text-zinc-300 whitespace-pre-wrap leading-relaxed">{{ $comment->comment }}</p>
                         </div>
                     @empty
-                        <p class="text-zinc-500 text-sm">{{ __('Belum ada komentar') }}</p>
+                        <p class="text-zinc-500 dark:text-zinc-400 text-sm">{{ __('Belum ada komentar') }}</p>
                     @endforelse
 
                     @can('comment', $ticket)
-                        <form wire:submit="addComment" class="space-y-3 pt-4">
+                        <form wire:submit="addComment" class="space-y-3 pt-4 border-t border-zinc-200 dark:border-zinc-700">
                             @can('commentInternal', $ticket)
-                                <flux:switch wire:model="isInternal" label="{{ __('Komentar Internal') }}" />
+                                <label class="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300">
+                                    <input type="checkbox" wire:model="isInternal" class="rounded border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800" />
+                                    {{ __('Komentar Internal') }}
+                                </label>
                             @endcan
 
-                            <flux:textarea wire:model="comment" rows="3" placeholder="{{ __('Tulis komentar...') }}" />
+                            <flux:textarea wire:model="comment" rows="3" placeholder="{{ __('Tulis komentar...') }}" class="dark:bg-zinc-800 dark:border-zinc-600 dark:text-white dark:placeholder-zinc-500" />
                             <flux:error name="comment" />
 
                             <flux:button type="submit" variant="primary" wire:loading.attr="disabled">
@@ -154,32 +161,32 @@
                             </flux:button>
                         </form>
                     @endcan
-                </flux:card.content>
+                </div>
             </flux:card>
         </div>
 
         <div class="space-y-6">
-            <flux:card>
-                <flux:card.header>
-                    <flux:heading>{{ __('Riwayat') }}</flux:heading>
-                </flux:card.header>
+            <flux:card class="dark:bg-zinc-900 dark:border-zinc-700">
+                <div class="p-6 border-b border-zinc-200 dark:border-zinc-700">
+                    <flux:heading class="dark:text-white">{{ __('Riwayat') }}</flux:heading>
+                </div>
 
-                <flux:card.content class="space-y-3">
+                <div class="p-6 space-y-3">
                     @forelse ($histories as $history)
-                        <div class="text-sm border-l-2 border-zinc-300 pl-3 dark:border-zinc-600">
-                            <div class="text-xs text-zinc-500">{{ $history->created_at->format('d M H:i') }}</div>
-                            <div>{{ $history->performedBy?->name ?? '-' }}</div>
-                            <div class="text-xs text-zinc-500">
+                        <div class="text-sm border-l-2 border-zinc-300 dark:border-zinc-600 pl-3">
+                            <div class="text-xs text-zinc-500 dark:text-zinc-500">{{ $history->created_at->format('d M H:i') }}</div>
+                            <div class="text-zinc-900 dark:text-zinc-100">{{ $history->performedBy?->name ?? '-' }}</div>
+                            <div class="text-xs text-zinc-500 dark:text-zinc-400">
                                 {{ ucfirst(str_replace('_', ' ', $history->action)) }}
                                 @if ($history->old_value && $history->new_value)
-                                    : {{ $history->old_value }} → {{ $history->new_value }}
+                                    : <span class="text-zinc-700 dark:text-zinc-300">{{ $history->old_value }}</span> → <span class="text-zinc-700 dark:text-zinc-300">{{ $history->new_value }}</span>
                                 @endif
                             </div>
                         </div>
                     @empty
-                        <p class="text-zinc-500 text-sm">{{ __('Belum ada riwayat') }}</p>
+                        <p class="text-zinc-500 dark:text-zinc-400 text-sm">{{ __('Belum ada riwayat') }}</p>
                     @endforelse
-                </flux:card.content>
+                </div>
             </flux:card>
         </div>
     </div>
