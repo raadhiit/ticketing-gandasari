@@ -10,6 +10,7 @@ use App\Actions\Ticket\ReopenTicketAction;
 use App\Actions\Ticket\UploadAttachmentAction;
 use App\Enums\TicketStatus;
 use App\Models\Ticket;
+use App\Models\TicketAttachment;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Flux\Flux;
@@ -35,6 +36,10 @@ class Show extends Component
     public bool $hasNewComments = false;
 
     public $attachment;
+
+    public ?string $previewUrl = null;
+
+    public ?string $previewName = null;
 
     protected $listeners = ['$refresh'];
 
@@ -93,6 +98,16 @@ class Show extends Component
         $this->attachment = null;
 
         Flux::toast('File berhasil diupload', variant: 'success');
+    }
+
+    public function previewAttachment(int $attachmentId): void
+    {
+        $attachment = TicketAttachment::findOrFail($attachmentId);
+
+        $this->previewUrl = asset('storage/'.$attachment->path);
+        $this->previewName = $attachment->filename;
+
+        $this->dispatch('modal-show', name: 'attachment-preview');
     }
 
     public function assign(): void

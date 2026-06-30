@@ -1,4 +1,4 @@
-<div>
+<div x-data="{ previewUrl: '', previewName: '' }">
     <div class="flex items-start gap-4 mb-6 flex-wrap">
         <div class="flex-1 min-w-0" wire:poll.15s="checkNewComments">
             <flux:heading size="xl" level="1" class="dark:text-white">{{ $ticket->ticket_number }}</flux:heading>
@@ -124,7 +124,13 @@
                     </div>
 
                     <div class="p-6 space-y-2">
+                        @php
+                            $previewMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 'image/bmp'];
+                        @endphp
                         @foreach ($attachments as $file)
+                            @php
+                                $isPreviewable = in_array($file->mime_type, $previewMimes);
+                            @endphp
                             <div class="flex items-center gap-3 py-2 border-b border-zinc-100 dark:border-zinc-800 last:border-0">
                                 <div class="flex-1 min-w-0">
                                     <p class="text-sm font-medium text-zinc-900 dark:text-white truncate">{{ $file->filename }}</p>
@@ -132,6 +138,12 @@
                                         {{ number_format($file->size / 1024, 1) }} KB &middot; {{ $file->uploadedBy?->name }}
                                     </p>
                                 </div>
+                                @if ($isPreviewable)
+                                    <button type="button" wire:click="previewAttachment({{ $file->id }})"
+                                            class="shrink-0 text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
+                                        {{ __('Preview') }}
+                                    </button>
+                                @endif
                                 <a href="{{ asset('storage/'.$file->path) }}" target="_blank"
                                    class="shrink-0 text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
                                     {{ __('Download') }}
@@ -242,4 +254,13 @@
             </flux:card>
         </div>
     </div>
+
+    <flux:modal name="attachment-preview" class="max-w-4xl">
+        <div class="p-6">
+            <h3 class="text-lg font-semibold text-zinc-900 dark:text-white mb-4">{{ $previewName }}</h3>
+            @if ($previewUrl)
+                <img src="{{ $previewUrl }}" alt="{{ $previewName }}" class="max-w-full max-h-[75vh] mx-auto rounded-lg">
+            @endif
+        </div>
+    </flux:modal>
 </div>
