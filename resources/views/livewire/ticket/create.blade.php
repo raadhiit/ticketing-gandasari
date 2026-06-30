@@ -51,6 +51,28 @@
                 </flux:select>
                 <flux:error name="priority" />
             </flux:field>
+
+            <flux:field>
+                <flux:label class="dark:text-zinc-300">{{ __('Lampiran') }}</flux:label>
+                <input type="file" wire:model="attachments" multiple
+                       class="block w-full text-sm text-zinc-700 dark:text-zinc-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-zinc-100 file:text-zinc-700 dark:file:bg-zinc-800 dark:file:text-zinc-300 hover:file:bg-zinc-200 dark:hover:file:bg-zinc-700" />
+                <flux:error name="attachments.*" />
+
+                <div wire:loading wire:target="attachments" class="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+                    {{ __('Mengupload...') }}
+                </div>
+
+                @if ($attachments)
+                    <ul class="mt-2 space-y-1">
+                        @foreach ($attachments as $index => $file)
+                            <li class="text-sm text-zinc-600 dark:text-zinc-400 flex items-center gap-2">
+                                <span>{{ $file->getClientOriginalName() }}</span>
+                                <button type="button" wire:click="removeAttachment({{ $index }})" class="text-red-500 hover:text-red-700 text-xs">&times;</button>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+            </flux:field>
         </flux:card>
 
         <div class="flex gap-4">

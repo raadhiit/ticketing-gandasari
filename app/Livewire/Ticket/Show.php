@@ -7,6 +7,7 @@ use App\Actions\Ticket\AssignTicketAction;
 use App\Actions\Ticket\ChangeStatusAction;
 use App\Actions\Ticket\CloseTicketAction;
 use App\Actions\Ticket\ReopenTicketAction;
+use App\Actions\Ticket\UploadAttachmentAction;
 use App\Enums\TicketStatus;
 use App\Models\Ticket;
 use App\Models\User;
@@ -14,10 +15,13 @@ use Carbon\CarbonImmutable;
 use Flux\Flux;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 #[Title('Detail Ticket')]
 class Show extends Component
 {
+    use WithFileUploads;
+
     public Ticket $ticket;
 
     public string $comment = '';
@@ -30,7 +34,16 @@ class Show extends Component
 
     public bool $hasNewComments = false;
 
+    public $attachment;
+
     protected $listeners = ['$refresh'];
+
+    public function rules(): array
+    {
+        return [
+            'attachment' => ['nullable', 'file', 'max:10240', 'mimes:jpg,jpeg,png,gif,pdf,doc,docx,xls,xlsx,zip,rar,txt,csv'],
+        ];
+    }
 
     public function mount(): void
     {
@@ -66,6 +79,20 @@ class Show extends Component
         $this->isInternal = false;
 
         Flux::toast('Komentar ditambahkan', variant: 'success');
+    }
+
+    public function uploadAttachment(): void
+    {
+        $this->authorize('update', $this->ticket);
+
+        $this->validate(['attachment' => ['required', 'file', 'max:10240', 'mimes:jpg,jpeg,png,gif,pdf,doc,docx,xls,xlsx,zip,rar,txt,csv']]);
+
+        $action = app(UploadAttachmentAction::class);
+        $action->execute($this->ticket, $this->attachment, auth()->user());
+
+        $this->attachment = null;
+
+        Flux::toast('File berhasil diupload', variant: 'success');
     }
 
     public function assign(): void
@@ -137,11 +164,17 @@ class Show extends Component
             ->latest()
             ->first();
 
+        $attachments = $this->ticket->attachments()
+            ->with('uploadedBy')
+            ->latest()
+            ->get();
+
         return view('livewire.ticket.show', [
             'agents' => $agents,
             'comments' => $comments,
             'histories' => $histories,
             'currentAssignment' => $currentAssignment,
+            'attachments' => $attachments,
         ]);
     }
 }

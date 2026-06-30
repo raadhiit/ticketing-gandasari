@@ -3,16 +3,20 @@
 namespace App\Livewire\Ticket;
 
 use App\Actions\Ticket\CreateTicketAction;
+use App\Actions\Ticket\UploadAttachmentAction;
 use App\Models\Department;
 use App\Models\Ticket;
 use App\Models\TicketCategory;
 use Flux;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 #[Title('Buat Ticket Baru')]
 class Create extends Component
 {
+    use WithFileUploads;
+
     public string $title = '';
 
     public string $description = '';
@@ -23,6 +27,8 @@ class Create extends Component
 
     public string $priority = 'MEDIUM';
 
+    public array $attachments = [];
+
     public function rules(): array
     {
         return [
@@ -31,7 +37,14 @@ class Create extends Component
             'category_id' => ['nullable', 'exists:ticket_categories,id'],
             'department_id' => ['nullable', 'exists:departments,id'],
             'priority' => ['required', 'in:LOW,MEDIUM,HIGH,URGENT'],
+            'attachments.*' => ['nullable', 'file', 'max:10240', 'mimes:jpg,jpeg,png,gif,pdf,doc,docx,xls,xlsx,zip,rar,txt,csv'],
         ];
+    }
+
+    public function removeAttachment(int $index): void
+    {
+        unset($this->attachments[$index]);
+        $this->attachments = array_values($this->attachments);
     }
 
     public function save(): void
@@ -49,6 +62,10 @@ class Create extends Component
             'description' => $this->description,
             'priority' => $this->priority,
         ]);
+
+        foreach ($this->attachments as $file) {
+            app(UploadAttachmentAction::class)->execute($ticket, $file, auth()->user());
+        }
 
         Flux::toast('Ticket berhasil dibuat', variant: 'success');
 

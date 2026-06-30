@@ -1,7 +1,8 @@
-<div class="relative" x-data="{ open: $wire.entangle('open') }" @click.outside="open = false">
+<div class="relative" x-data="{ open: $wire.entangle('open'), position: {} }" @click.outside="open = false">
     <button
         type="button"
-        @click="open = !open; $wire.loadNotifications()"
+        x-ref="trigger"
+        @click="if ({{ $sidebar ? 'true' : 'false' }} && !open) { const rect = $refs.trigger.getBoundingClientRect(); position = { top: rect.bottom + 4, left: rect.right + 4 }; }; open = !open; $wire.loadNotifications()"
         class="relative flex items-center justify-center h-10 w-10 rounded-lg text-zinc-500 hover:text-zinc-700 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-zinc-200 dark:hover:bg-zinc-700 transition-colors"
     >
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-5">
@@ -18,13 +19,14 @@
 
     <div
         x-show="open"
+        :style="position.top ? `top: ${position.top}px; left: ${position.left}px;` : ''"
         x-transition:enter="transition ease-out duration-200"
         x-transition:enter-start="opacity-0 scale-95"
         x-transition:enter-end="opacity-100 scale-100"
         x-transition:leave="transition ease-in duration-150"
         x-transition:leave-start="opacity-100 scale-100"
         x-transition:leave-end="opacity-0 scale-95"
-        class="absolute {{ $sidebar ? 'left-full ml-2 top-0' : 'right-0 mt-2' }} w-80 rounded-xl border border-zinc-200 bg-white shadow-lg dark:border-zinc-700 dark:bg-zinc-900 z-50"
+        class="{{ $sidebar ? 'fixed z-50' : 'absolute right-0 mt-2 z-50' }} w-80 rounded-xl border border-zinc-200 bg-white shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
         @click.stop
     >
         <div class="flex items-center justify-between px-4 py-3 border-b border-zinc-200 dark:border-zinc-700">

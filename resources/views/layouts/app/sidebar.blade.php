@@ -8,7 +8,7 @@
             <flux:sidebar.header>
                 <x-app-logo :sidebar="true" href="{{ route('dashboard') }}" wire:navigate />
 
-                <div class="hidden lg:flex items-center gap-1">
+                <div class="hidden lg:flex items-center shrink-0">
                     <livewire:notification-bell :sidebar="true" />
                 </div>
 

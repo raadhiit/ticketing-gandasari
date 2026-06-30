@@ -117,6 +117,58 @@
                 </flux:card>
             @endcan
 
+            @if ($attachments->isNotEmpty())
+                <flux:card class="dark:bg-zinc-900 dark:border-zinc-700">
+                    <div class="p-6 border-b border-zinc-200 dark:border-zinc-700">
+                        <flux:heading class="dark:text-white">{{ __('Lampiran') }} ({{ $attachments->count() }})</flux:heading>
+                    </div>
+
+                    <div class="p-6 space-y-2">
+                        @foreach ($attachments as $file)
+                            <div class="flex items-center gap-3 py-2 border-b border-zinc-100 dark:border-zinc-800 last:border-0">
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium text-zinc-900 dark:text-white truncate">{{ $file->filename }}</p>
+                                    <p class="text-xs text-zinc-500 dark:text-zinc-400">
+                                        {{ number_format($file->size / 1024, 1) }} KB &middot; {{ $file->uploadedBy?->name }}
+                                    </p>
+                                </div>
+                                <a href="{{ asset('storage/'.$file->path) }}" target="_blank"
+                                   class="shrink-0 text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
+                                    {{ __('Download') }}
+                                </a>
+                            </div>
+                        @endforeach
+                    </div>
+                </flux:card>
+            @endif
+
+            @can('update', $ticket)
+                <flux:card class="dark:bg-zinc-900 dark:border-zinc-700">
+                    <div class="p-6 border-b border-zinc-200 dark:border-zinc-700">
+                        <flux:heading class="dark:text-white">{{ __('Upload Lampiran') }}</flux:heading>
+                    </div>
+
+                    <div class="p-6">
+                        <form wire:submit="uploadAttachment" class="space-y-3">
+                            <flux:field>
+                                <flux:label class="dark:text-zinc-300">{{ __('Pilih File') }}</flux:label>
+                                <input type="file" wire:model="attachment"
+                                       class="block w-full text-sm text-zinc-700 dark:text-zinc-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-zinc-100 file:text-zinc-700 dark:file:bg-zinc-800 dark:file:text-zinc-300 hover:file:bg-zinc-200 dark:hover:file:bg-zinc-700" />
+                                <flux:error name="attachment" />
+                            </flux:field>
+
+                            <div wire:loading wire:target="attachment" class="text-sm text-zinc-500 dark:text-zinc-400">
+                                {{ __('Mengupload...') }}
+                            </div>
+
+                            <flux:button type="submit" variant="primary" wire:loading.attr="disabled" wire:target="attachment">
+                                {{ __('Upload') }}
+                            </flux:button>
+                        </form>
+                    </div>
+                </flux:card>
+            @endcan
+
             @if ($hasNewComments)
                 <div class="rounded-lg bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 p-4 text-sm text-blue-700 dark:text-blue-300">
                     {{ __('Ada komentar baru.') }}

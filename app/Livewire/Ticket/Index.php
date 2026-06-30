@@ -66,6 +66,13 @@ class Index extends Component
         $this->resetPage();
     }
 
+    public function refresh(): void
+    {
+        $this->lastCheck = now();
+        $this->hasNewTickets = false;
+        $this->resetPage();
+    }
+
     public function sortBy(string $field): void
     {
         if ($this->sortField === $field) {

@@ -43,6 +43,10 @@
             <option value="URGENT">Urgent</option>
         </flux:select>
 
+        <flux:button wire:click="refresh" icon="arrow-path" class="shrink-0">
+            {{ __('Refresh') }}
+        </flux:button>
+
         <flux:spacer />
 
         <flux:button :href="route('tickets.create')" wire:navigate icon="plus">
