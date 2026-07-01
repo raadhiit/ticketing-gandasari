@@ -6,8 +6,10 @@ use App\Events\Ticket\TicketAssigned;
 use App\Events\Ticket\TicketClosed;
 use App\Events\Ticket\TicketCommentAdded;
 use App\Events\Ticket\TicketCreated;
+use App\Events\Ticket\TicketDeleted;
 use App\Events\Ticket\TicketReopened;
 use App\Events\Ticket\TicketStatusChanged;
+use App\Events\Ticket\TicketUpdated;
 
 class TicketHistorySubscriber
 {
@@ -69,6 +71,31 @@ class TicketHistorySubscriber
         ]);
     }
 
+    public function handleDeleted(TicketDeleted $event): void
+    {
+        $event->ticket->histories()->create([
+            'action' => 'deleted',
+            'field' => 'status',
+            'new_value' => 'DELETED',
+            'performed_by' => $event->deletedBy->id,
+            'created_at' => now(),
+        ]);
+    }
+
+    public function handleUpdated(TicketUpdated $event): void
+    {
+        foreach ($event->changedFields as $change) {
+            $event->ticket->histories()->create([
+                'action' => 'updated',
+                'field' => $change['field'],
+                'old_value' => $change['old_value'],
+                'new_value' => $change['new_value'],
+                'performed_by' => $event->performedBy->id,
+                'created_at' => now(),
+            ]);
+        }
+    }
+
     public function handleCommentAdded(TicketCommentAdded $event): void
     {
         $event->comment->ticket->histories()->create([
@@ -87,7 +114,9 @@ class TicketHistorySubscriber
             TicketAssigned::class => 'handleAssigned',
             TicketStatusChanged::class => 'handleStatusChanged',
             TicketClosed::class => 'handleClosed',
+            TicketDeleted::class => 'handleDeleted',
             TicketReopened::class => 'handleReopened',
+            TicketUpdated::class => 'handleUpdated',
             TicketCommentAdded::class => 'handleCommentAdded',
         ];
     }

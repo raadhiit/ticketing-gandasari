@@ -4,6 +4,12 @@
             <flux:navlist.item :href="route('profile.edit')" wire:navigate>{{ __('Profile') }}</flux:navlist.item>
             <flux:navlist.item :href="route('security.edit')" wire:navigate>{{ __('Security') }}</flux:navlist.item>
             <flux:navlist.item :href="route('appearance.edit')" wire:navigate>{{ __('Appearance') }}</flux:navlist.item>
+
+            <flux:navlist.group :heading="__('Management')">
+                <flux:navlist.item :href="route('settings.departments')" wire:navigate>{{ __('Departemen') }}</flux:navlist.item>
+                <flux:navlist.item :href="route('settings.ticket-categories')" wire:navigate>{{ __('Kategori') }}</flux:navlist.item>
+                <flux:navlist.item :href="route('settings.users')" wire:navigate>{{ __('Pengguna') }}</flux:navlist.item>
+            </flux:navlist.group>
         </flux:navlist>
     </div>
 

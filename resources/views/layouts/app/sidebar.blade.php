@@ -17,13 +17,34 @@
 
             <flux:sidebar.nav>
                 <flux:sidebar.group :heading="__('Platform')" class="grid">
-                    <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
-                        {{ __('Dashboard') }}
-                    </flux:sidebar.item>
+                    @can('ticket.assign')
+                        <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
+                            {{ __('Dashboard') }}
+                        </flux:sidebar.item>
+                    @endcan
                     <flux:sidebar.item icon="inbox" :href="route('tickets.index')" :current="request()->routeIs('tickets.*')" wire:navigate>
                         {{ __('Tickets') }}
                     </flux:sidebar.item>
+                    @can('report.view')
+                        <flux:sidebar.item icon="chart-bar" :href="route('reports')" :current="request()->routeIs('reports')" wire:navigate>
+                            {{ __('Laporan') }}
+                        </flux:sidebar.item>
+                    @endcan
                 </flux:sidebar.group>
+
+                @can('settings.manage')
+                    <flux:sidebar.group :heading="__('Settings')" class="grid">
+                        <flux:sidebar.item icon="building-office" :href="route('settings.departments')" :current="request()->routeIs('settings.departments')" wire:navigate>
+                            {{ __('Departemen') }}
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="tag" :href="route('settings.ticket-categories')" :current="request()->routeIs('settings.ticket-categories')" wire:navigate>
+                            {{ __('Kategori') }}
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="users" :href="route('settings.users')" :current="request()->routeIs('settings.users')" wire:navigate>
+                            {{ __('Pengguna') }}
+                        </flux:sidebar.item>
+                    </flux:sidebar.group>
+                @endcan
             </flux:sidebar.nav>
 
             <flux:spacer />

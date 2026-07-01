@@ -6,6 +6,7 @@ use App\Events\Ticket\TicketAssigned;
 use App\Events\Ticket\TicketClosed;
 use App\Events\Ticket\TicketCommentAdded;
 use App\Events\Ticket\TicketCreated;
+use App\Events\Ticket\TicketDeleted;
 use App\Events\Ticket\TicketReopened;
 use App\Events\Ticket\TicketStatusChanged;
 use App\Models\User;
@@ -62,6 +63,16 @@ class NotificationSubscriber
         }
     }
 
+    public function handleDeleted(TicketDeleted $event): void
+    {
+        $requester = $event->ticket->requester;
+        if ($requester && $requester->id !== $event->deletedBy->id) {
+            $requester->notify(
+                new TicketStatusNotification($event->ticket, $event->ticket->status, 'DELETED', $event->deletedBy)
+            );
+        }
+    }
+
     public function handleCommentAdded(TicketCommentAdded $event): void
     {
         $ticket = $event->comment->ticket;
@@ -87,6 +98,7 @@ class NotificationSubscriber
             TicketAssigned::class => 'handleAssigned',
             TicketStatusChanged::class => 'handleStatusChanged',
             TicketClosed::class => 'handleClosed',
+            TicketDeleted::class => 'handleDeleted',
             TicketReopened::class => 'handleReopened',
             TicketCommentAdded::class => 'handleCommentAdded',
         ];

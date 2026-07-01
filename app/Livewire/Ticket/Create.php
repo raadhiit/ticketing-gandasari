@@ -7,7 +7,8 @@ use App\Actions\Ticket\UploadAttachmentAction;
 use App\Models\Department;
 use App\Models\Ticket;
 use App\Models\TicketCategory;
-use Flux;
+use Flux\Flux;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -27,7 +28,14 @@ class Create extends Component
 
     public string $priority = 'MEDIUM';
 
+    public string $requester_name = '';
+
     public array $attachments = [];
+
+    public function mount(): void
+    {
+        $this->requester_name = Auth::user()?->name ?? '';
+    }
 
     public function rules(): array
     {
@@ -37,6 +45,7 @@ class Create extends Component
             'category_id' => ['nullable', 'exists:ticket_categories,id'],
             'department_id' => ['nullable', 'exists:departments,id'],
             'priority' => ['required', 'in:LOW,MEDIUM,HIGH,URGENT'],
+            'requester_name' => ['nullable', 'string', 'max:100'],
             'attachments.*' => ['nullable', 'file', 'max:10240', 'mimes:jpg,jpeg,png,gif,pdf,doc,docx,xls,xlsx,zip,rar,txt,csv'],
         ];
     }
@@ -47,6 +56,14 @@ class Create extends Component
         $this->attachments = array_values($this->attachments);
     }
 
+    public function confirmSave(): void
+    {
+        $this->validate();
+
+        $this->dispatch('confirm-open', name: 'confirm-create', title: __('Buat Ticket'), message: __('Yakin ingin mengirim ticket ini? Pastikan semua data sudah benar.'), method: 'save', variant: 'primary', confirmLabel: __('Ya, Kirim'));
+        $this->dispatch('modal-show', name: 'confirm-create');
+    }
+
     public function save(): void
     {
         $this->authorize('create', Ticket::class);
@@ -55,7 +72,8 @@ class Create extends Component
 
         $action = app(CreateTicketAction::class);
         $ticket = $action->execute([
-            'requester_id' => auth()->id(),
+            'requester_id' => Auth::id(),
+            'requester_name' => $this->requester_name,
             'department_id' => $this->department_id,
             'category_id' => $this->category_id,
             'title' => $this->title,
@@ -64,7 +82,7 @@ class Create extends Component
         ]);
 
         foreach ($this->attachments as $file) {
-            app(UploadAttachmentAction::class)->execute($ticket, $file, auth()->user());
+            app(UploadAttachmentAction::class)->execute($ticket, $file, Auth::user());
         }
 
         Flux::toast('Ticket berhasil dibuat', variant: 'success');

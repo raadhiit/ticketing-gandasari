@@ -16,6 +16,7 @@ class CreateTicketAction
             $ticket = Ticket::create([
                 'ticket_number' => $this->generateTicketNumber(),
                 'requester_id' => $data['requester_id'],
+                'requester_name' => $data['requester_name'] ?? null,
                 'department_id' => $data['department_id'] ?? null,
                 'category_id' => $data['category_id'] ?? null,
                 'title' => $data['title'],

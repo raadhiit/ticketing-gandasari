@@ -20,14 +20,14 @@ class RoleAndPermissionSeeder extends Seeder
             $created[$name] = Permission::findOrCreate($name);
         }
 
-        $requester = Role::create(['name' => 'Requester']);
-        $requester->givePermissionTo($created['ticket.create'], $created['ticket.view'], $created['ticket.comment']);
+        $requester = Role::findOrCreate('Requester');
+        $requester->syncPermissions([$created['ticket.create'], $created['ticket.view'], $created['ticket.edit'], $created['ticket.comment']]);
 
-        $agent = Role::create(['name' => 'Agent']);
-        $agent->givePermissionTo($created['ticket.create'], $created['ticket.view'], $created['ticket.edit'], $created['ticket.assign'], $created['ticket.close'], $created['ticket.reopen'], $created['ticket.comment'], $created['ticket.comment.internal']);
+        $agent = Role::findOrCreate('Agent');
+        $agent->syncPermissions([$created['ticket.create'], $created['ticket.view'], $created['ticket.edit'], $created['ticket.assign'], $created['ticket.close'], $created['ticket.reopen'], $created['ticket.comment'], $created['ticket.comment.internal'], $created['ticket.delete']]);
 
-        $admin = Role::create(['name' => 'Admin']);
-        $admin->givePermissionTo(...array_values($created));
+        $admin = Role::findOrCreate('Admin');
+        $admin->syncPermissions(array_values($created));
 
         app()->make(PermissionRegistrar::class)->forgetCachedPermissions();
     }

@@ -6,6 +6,7 @@ use App\Actions\Ticket\AddCommentAction;
 use App\Actions\Ticket\AssignTicketAction;
 use App\Actions\Ticket\ChangeStatusAction;
 use App\Actions\Ticket\CloseTicketAction;
+use App\Actions\Ticket\DeleteTicketAction;
 use App\Actions\Ticket\ReopenTicketAction;
 use App\Actions\Ticket\UploadAttachmentAction;
 use App\Enums\TicketStatus;
@@ -14,6 +15,8 @@ use App\Models\TicketAttachment;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Flux\Flux;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -78,7 +81,7 @@ class Show extends Component
         $action->execute($this->ticket, [
             'comment' => $this->comment,
             'is_internal' => $this->isInternal,
-        ], auth()->user());
+        ], Auth::user());
 
         $this->comment = '';
         $this->isInternal = false;
@@ -93,11 +96,35 @@ class Show extends Component
         $this->validate(['attachment' => ['required', 'file', 'max:10240', 'mimes:jpg,jpeg,png,gif,pdf,doc,docx,xls,xlsx,zip,rar,txt,csv']]);
 
         $action = app(UploadAttachmentAction::class);
-        $action->execute($this->ticket, $this->attachment, auth()->user());
+        $action->execute($this->ticket, $this->attachment, Auth::user());
 
         $this->attachment = null;
 
         Flux::toast('File berhasil diupload', variant: 'success');
+    }
+
+    public function delete(): void
+    {
+        $this->authorize('delete', $this->ticket);
+
+        app(DeleteTicketAction::class)->execute($this->ticket, Auth::user());
+
+        Flux::toast('Ticket berhasil dihapus', variant: 'success');
+
+        $this->redirect(route('tickets.index'), navigate: true);
+    }
+
+    public function deleteAttachment(int $attachmentId): void
+    {
+        $this->authorize('update', $this->ticket);
+
+        $attachment = TicketAttachment::findOrFail($attachmentId);
+
+        Storage::disk('public')->delete($attachment->path);
+
+        $attachment->delete();
+
+        Flux::toast('Lampiran berhasil dihapus', variant: 'success');
     }
 
     public function previewAttachment(int $attachmentId): void
@@ -119,7 +146,7 @@ class Show extends Component
         $agent = User::findOrFail($this->assignedUserId);
 
         $action = app(AssignTicketAction::class);
-        $action->execute($this->ticket, $agent, auth()->user());
+        $action->execute($this->ticket, $agent, Auth::user());
 
         $this->assignedUserId = null;
 
@@ -128,6 +155,15 @@ class Show extends Component
 
     public function changeStatus(string $status): void
     {
+        if ($status === 'REOPEN') {
+            $this->authorize('reopen', $this->ticket);
+            $action = app(ReopenTicketAction::class);
+            $action->execute($this->ticket, Auth::user());
+            Flux::toast('Ticket dibuka kembali', variant: 'success');
+
+            return;
+        }
+
         $newStatus = TicketStatus::tryFrom($status);
 
         if (! $newStatus) {
@@ -138,17 +174,11 @@ class Show extends Component
 
         if ($status === 'CLOSED') {
             $action = app(CloseTicketAction::class);
-            $action->execute($this->ticket, auth()->user());
+            $action->execute($this->ticket, Auth::user());
             Flux::toast('Ticket ditutup', variant: 'success');
-        } elseif ($status === 'REOPEN') {
-            $this->authorize('reopen', $this->ticket);
-            $action = app(ReopenTicketAction::class);
-            $action->execute($this->ticket, auth()->user());
-            Flux::toast('Ticket dibuka kembali', variant: 'success');
         } else {
-            $this->authorize('close', $this->ticket);
             $action = app(ChangeStatusAction::class);
-            $action->execute($this->ticket, $newStatus, auth()->user());
+            $action->execute($this->ticket, $newStatus, Auth::user());
             Flux::toast('Status diubah ke '.str_replace('_', ' ', $newStatus->value), variant: 'success');
         }
     }
@@ -161,7 +191,7 @@ class Show extends Component
             ->with('user')
             ->where(function ($q) {
                 $q->where('is_internal', false);
-                if (auth()->user()->can('ticket.comment.internal')) {
+                if (Auth::user()?->can('ticket.comment.internal')) {
                     $q->orWhere('is_internal', true);
                 }
             })

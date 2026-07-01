@@ -5,6 +5,7 @@ namespace App\Livewire\Ticket;
 use App\Models\Ticket;
 use App\Models\TicketCategory;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -39,8 +40,8 @@ class Index extends Component
     {
         $query = Ticket::query()->where('created_at', '>', $this->lastCheck);
 
-        if (! auth()->user()->can('ticket.view')) {
-            $query->where('requester_id', auth()->id());
+        if (! Auth::user()?->can('ticket.assign')) {
+            $query->where('requester_id', Auth::id());
         }
 
         $this->hasNewTickets = $query->exists();
@@ -86,8 +87,8 @@ class Index extends Component
     public function render()
     {
         $query = Ticket::query()
-            ->with(['requester', 'department', 'category'])
-            ->when(! auth()->user()->can('ticket.view'), fn ($q) => $q->where('requester_id', auth()->id()))
+            ->with(['requester', 'department', 'category'])->withCount('attachments')
+            ->when(! Auth::user()?->can('ticket.assign'), fn ($q) => $q->where('requester_id', Auth::id()))
             ->when($this->search, fn ($q) => $q->where(function ($q) {
                 $q->where('ticket_number', 'like', '%'.$this->search.'%')
                     ->orWhere('title', 'like', '%'.$this->search.'%');
@@ -98,11 +99,16 @@ class Index extends Component
 
         $tickets = $query->paginate(15);
 
+        $user = Auth::user();
+
+        $countQuery = Ticket::query()
+            ->when(! $user?->can('ticket.assign'), fn ($q) => $q->where('requester_id', $user?->id));
+
         $counts = [
-            'open' => Ticket::where('status', 'OPEN')->count(),
-            'assigned' => Ticket::where('status', 'ASSIGNED')->count(),
-            'in_progress' => Ticket::where('status', 'IN_PROGRESS')->count(),
-            'closed' => Ticket::where('status', 'CLOSED')->count(),
+            'open' => (clone $countQuery)->where('status', 'OPEN')->count(),
+            'assigned' => (clone $countQuery)->where('status', 'ASSIGNED')->count(),
+            'in_progress' => (clone $countQuery)->where('status', 'IN_PROGRESS')->count(),
+            'closed' => (clone $countQuery)->where('status', 'CLOSED')->count(),
         ];
 
         $categories = TicketCategory::pluck('name', 'id');
