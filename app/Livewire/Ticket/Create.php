@@ -60,7 +60,7 @@ class Create extends Component
     {
         $this->validate();
 
-        $this->dispatch('confirm-open', name: 'confirm-create', title: __('Buat Ticket'), message: __('Yakin ingin mengirim ticket ini? Pastikan semua data sudah benar.'), method: 'save', variant: 'primary', confirmLabel: __('Ya, Kirim'));
+        $this->dispatch('confirm-open', name: 'confirm-create', title: __('Buat Ticket'), message: __('Yakin ingin mengirim ticket ini? Pastikan semua data sudah benar.'), method: 'save', variant: 'primary', confirmLabel: __('Ya'));
         $this->dispatch('modal-show', name: 'confirm-create');
     }
 

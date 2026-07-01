@@ -54,7 +54,7 @@ class Edit extends Component
 
         $this->validate();
 
-        $this->dispatch('confirm-open', name: 'confirm-edit', title: __('Simpan Perubahan'), message: __('Yakin ingin menyimpan perubahan ticket ini?'), method: 'save', variant: 'primary', confirmLabel: __('Ya, Simpan'));
+        $this->dispatch('confirm-open', name: 'confirm-edit', title: __('Simpan Perubahan'), message: __('Yakin ingin menyimpan perubahan ticket ini?'), method: 'save', variant: 'primary', confirmLabel: __('Ya'));
         $this->dispatch('modal-show', name: 'confirm-edit');
     }
 
