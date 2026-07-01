@@ -185,7 +185,7 @@ class Show extends Component
 
     public function render()
     {
-        $agents = User::role('Agent')->with('department')->get();
+        $agents = User::role('IT ERP')->with('department')->get();
 
         $comments = $this->ticket->comments()
             ->with('user')

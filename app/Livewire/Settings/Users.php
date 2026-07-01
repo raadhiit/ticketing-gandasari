@@ -26,7 +26,7 @@ class Users extends Component
 
     public string $password_confirmation = '';
 
-    public string $role = 'Requester';
+    public string $role = 'User';
 
     public bool $is_active = true;
 
@@ -65,7 +65,7 @@ class Users extends Component
         $this->name = $user->name;
         $this->email = $user->email;
         $this->department_id = $user->department_id;
-        $this->role = $user->roles->first()?->name ?? 'Requester';
+        $this->role = $user->roles->first()?->name ?? 'User';
         $this->is_active = $user->is_active;
         $this->showForm = true;
     }
@@ -130,7 +130,7 @@ class Users extends Component
         $this->department_id = null;
         $this->password = '';
         $this->password_confirmation = '';
-        $this->role = 'Requester';
+        $this->role = 'User';
         $this->is_active = true;
         $this->showForm = false;
     }
