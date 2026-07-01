@@ -11,41 +11,43 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         $it = Department::where('name', 'Information Technology')->firstOrFail();
-        $hr = Department::where('name', 'Human Resources')->firstOrFail();
 
-        $admin = User::factory()->create([
-            'name' => 'Admin',
-            'email' => 'admin@ticketing.test',
+        $admin = User::create([
+            'name' => 'Super Admin',
+            'email' => 'superadmin@ticketing.test',
+            'password' => bcrypt('password'),
             'department_id' => $it->id,
         ]);
-        $admin->assignRole('Admin');
+        $admin->assignRole('supermadin');
 
-        $agent1 = User::factory()->create([
-            'name' => 'Agent Satu',
-            'email' => 'agent1@ticketing.test',
+        $agent1 = User::create([
+            'name' => 'IT ERP Satu',
+            'email' => 'it-erp1@ticketing.test',
+            'password' => bcrypt('password'),
             'department_id' => $it->id,
         ]);
-        $agent1->assignRole('Agent');
+        $agent1->assignRole('IT ERP');
 
-        $agent2 = User::factory()->create([
-            'name' => 'Agent Dua',
-            'email' => 'agent2@ticketing.test',
+        $agent2 = User::create([
+            'name' => 'IT ERP Dua',
+            'email' => 'it-erp2@ticketing.test',
+            'password' => bcrypt('password'),
             'department_id' => $it->id,
         ]);
-        $agent2->assignRole('Agent');
+        $agent2->assignRole('IT ERP');
 
-        $requester1 = User::factory()->create([
-            'name' => 'Requester Satu',
-            'email' => 'requester1@ticketing.test',
-            'department_id' => $hr->id,
-        ]);
-        $requester1->assignRole('Requester');
+        User::create([
+            'name' => 'User Satu',
+            'email' => 'user1@ticketing.test',
+            'password' => bcrypt('password'),
+            'department_id' => $it->id,
+        ])->assignRole('User');
 
-        $requester2 = User::factory()->create([
-            'name' => 'Requester Dua',
-            'email' => 'requester2@ticketing.test',
-            'department_id' => $hr->id,
-        ]);
-        $requester2->assignRole('Requester');
+        User::create([
+            'name' => 'User Dua',
+            'email' => 'user2@ticketing.test',
+            'password' => bcrypt('password'),
+            'department_id' => $it->id,
+        ])->assignRole('User');
     }
 }
