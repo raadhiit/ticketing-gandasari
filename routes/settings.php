@@ -1,6 +1,6 @@
 <?php
 
-use App\Livewire\Settings\Appearance;
+// use App\Livewire\Settings\Appearance;
 use App\Livewire\Settings\Departments;
 use App\Livewire\Settings\Profile;
 use App\Livewire\Settings\Security;
@@ -15,7 +15,7 @@ Route::middleware(['auth'])->group(function () {
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::livewire('settings/appearance', Appearance::class)->name('appearance.edit');
+    // Route::livewire('settings/appearance', Appearance::class)->name('appearance.edit');
 
     Route::livewire('settings/security', Security::class)
         ->middleware([

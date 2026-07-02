@@ -24,9 +24,9 @@ class Index extends Component
     private function scopePeriod(Builder $query): Builder
     {
         return $query
-            ->when($this->period === 'today', fn ($q) => $q->whereDate('created_at', today()))
-            ->when($this->period === 'week', fn ($q) => $q->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]))
-            ->when($this->period === 'month', fn ($q) => $q->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year));
+            ->when($this->period === 'today', fn($q) => $q->whereDate('created_at', today()))
+            ->when($this->period === 'week', fn($q) => $q->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]))
+            ->when($this->period === 'month', fn($q) => $q->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year));
     }
 
     public function render()
@@ -37,9 +37,7 @@ class Index extends Component
         $stats = [
             'total' => (clone $periodic)->count(),
             'open' => (clone $periodic)->where('status', 'OPEN')->count(),
-            'assigned' => (clone $periodic)->where('status', 'ASSIGNED')->count(),
             'in_progress' => (clone $periodic)->where('status', 'IN_PROGRESS')->count(),
-            'waiting_user' => (clone $periodic)->where('status', 'WAITING_USER')->count(),
             'resolved' => (clone $periodic)->where('status', 'RESOLVED')->count(),
             'closed' => (clone $periodic)->where('status', 'CLOSED')->count(),
         ];
@@ -59,20 +57,14 @@ class Index extends Component
             $this->scopePeriod($q);
         }])->get();
 
-        $myTickets = Ticket::whereHas('activeAssignment', fn ($q) => $q->where('assigned_to', auth()->id()))
-            ->whereNotIn('status', ['CLOSED', 'CANCELLED', 'RESOLVED'])
+        $myTickets = Ticket::whereHas('activeAssignment', fn($q) => $q->where('assigned_to', auth()->id()))
+            ->whereIn('status', ['OPEN', 'IN_PROGRESS'])
             ->with(['requester', 'department', 'category'])
             ->latest()
             ->get();
 
-        $needsAction = Ticket::whereIn('status', ['OPEN', 'ASSIGNED', 'WAITING_USER'])
-            ->where(function ($q) {
-                $q->where('priority', 'URGENT')
-                    ->orWhere(function ($q) {
-                        $q->where('status', 'WAITING_USER')
-                            ->where('updated_at', '<', now()->subDays(3));
-                    });
-            })
+        $needsAction = Ticket::whereIn('status', ['OPEN', 'IN_PROGRESS'])
+            ->where('priority', 'URGENT')
             ->with(['requester', 'department', 'category', 'activeAssignment.assignedTo'])
             ->latest()
             ->get();

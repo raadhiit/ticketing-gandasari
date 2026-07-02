@@ -3,7 +3,7 @@
 namespace App\Livewire\Ticket;
 
 use App\Models\Ticket;
-use App\Models\TicketCategory;
+// use App\Models\TicketCategory;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Title;
@@ -87,14 +87,14 @@ class Index extends Component
     public function render()
     {
         $query = Ticket::query()
-            ->with(['requester', 'department', 'category'])->withCount('attachments')
-            ->when(! Auth::user()?->can('ticket.assign'), fn ($q) => $q->where('requester_id', Auth::id()))
-            ->when($this->search, fn ($q) => $q->where(function ($q) {
-                $q->where('ticket_number', 'like', '%'.$this->search.'%')
-                    ->orWhere('title', 'like', '%'.$this->search.'%');
+            // ->with(['requester', 'department', 'category'])->withCount('attachments')
+            ->when(! Auth::user()?->can('ticket.assign'), fn($q) => $q->where('requester_id', Auth::id()))
+            ->when($this->search, fn($q) => $q->where(function ($q) {
+                $q->where('ticket_number', 'like', '%' . $this->search . '%')
+                    ->orWhere('title', 'like', '%' . $this->search . '%');
             }))
-            ->when($this->statusFilter, fn ($q) => $q->where('status', $this->statusFilter))
-            ->when($this->priorityFilter, fn ($q) => $q->where('priority', $this->priorityFilter))
+            ->when($this->statusFilter, fn($q) => $q->where('status', $this->statusFilter))
+            ->when($this->priorityFilter, fn($q) => $q->where('priority', $this->priorityFilter))
             ->orderBy($this->sortField, $this->sortDirection);
 
         $tickets = $query->paginate(15);
@@ -102,21 +102,21 @@ class Index extends Component
         $user = Auth::user();
 
         $countQuery = Ticket::query()
-            ->when(! $user?->can('ticket.assign'), fn ($q) => $q->where('requester_id', $user?->id));
+            ->when(! $user?->can('ticket.assign'), fn($q) => $q->where('requester_id', $user?->id));
 
         $counts = [
             'open' => (clone $countQuery)->where('status', 'OPEN')->count(),
-            'assigned' => (clone $countQuery)->where('status', 'ASSIGNED')->count(),
             'in_progress' => (clone $countQuery)->where('status', 'IN_PROGRESS')->count(),
+            'resolved' => (clone $countQuery)->where('status', 'RESOLVED')->count(),
             'closed' => (clone $countQuery)->where('status', 'CLOSED')->count(),
         ];
 
-        $categories = TicketCategory::pluck('name', 'id');
+        // $categories = TicketCategory::pluck('name', 'id');
 
         return view('livewire.ticket.index', [
             'tickets' => $tickets,
             'counts' => $counts,
-            'categories' => $categories,
+            // 'categories' => $categories,
         ]);
     }
 }

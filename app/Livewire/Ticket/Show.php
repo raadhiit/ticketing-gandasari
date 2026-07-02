@@ -131,7 +131,7 @@ class Show extends Component
     {
         $attachment = TicketAttachment::findOrFail($attachmentId);
 
-        $this->previewUrl = asset('storage/'.$attachment->path);
+        $this->previewUrl = asset('storage/' . $attachment->path);
         $this->previewName = $attachment->filename;
 
         $this->dispatch('modal-show', name: 'attachment-preview');
@@ -150,15 +150,16 @@ class Show extends Component
 
         $this->assignedUserId = null;
 
-        Flux::toast('Ticket di-assign ke '.$agent->name, variant: 'success');
+        Flux::toast('Ticket di-assign ke ' . $agent->name, variant: 'success');
     }
 
     public function changeStatus(string $status): void
     {
         if ($status === 'REOPEN') {
             $this->authorize('reopen', $this->ticket);
-            $action = app(ReopenTicketAction::class);
-            $action->execute($this->ticket, Auth::user());
+
+            app(ReopenTicketAction::class)->execute($this->ticket, Auth::user());
+
             Flux::toast('Ticket dibuka kembali', variant: 'success');
 
             return;
@@ -167,20 +168,39 @@ class Show extends Component
         $newStatus = TicketStatus::tryFrom($status);
 
         if (! $newStatus) {
+            Flux::toast('Status tidak valid', variant: 'danger');
+
+            return;
+        }
+
+        $allowedTransitions = [
+            'OPEN' => ['IN_PROGRESS'],
+            'IN_PROGRESS' => ['RESOLVED'],
+            'RESOLVED' => ['CLOSED'],
+            'CLOSED' => [],
+        ];
+
+        $currentStatus = $this->ticket->status;
+
+        if (! in_array($newStatus->value, $allowedTransitions[$currentStatus] ?? [], true)) {
+            Flux::toast('Perubahan status tidak sesuai alur ticket', variant: 'warning');
+
             return;
         }
 
         $this->authorize('close', $this->ticket);
 
-        if ($status === 'CLOSED') {
-            $action = app(CloseTicketAction::class);
-            $action->execute($this->ticket, Auth::user());
+        if ($newStatus === TicketStatus::CLOSED) {
+            app(CloseTicketAction::class)->execute($this->ticket, Auth::user());
+
             Flux::toast('Ticket ditutup', variant: 'success');
-        } else {
-            $action = app(ChangeStatusAction::class);
-            $action->execute($this->ticket, $newStatus, Auth::user());
-            Flux::toast('Status diubah ke '.str_replace('_', ' ', $newStatus->value), variant: 'success');
+
+            return;
         }
+
+        app(ChangeStatusAction::class)->execute($this->ticket, $newStatus, Auth::user());
+
+        Flux::toast('Status diubah ke ' . str_replace('_', ' ', $newStatus->value), variant: 'success');
     }
 
     public function render()

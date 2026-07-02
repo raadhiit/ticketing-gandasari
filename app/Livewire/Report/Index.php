@@ -42,11 +42,11 @@ class Index extends Component
     private function applyFilters($query)
     {
         return $query
-            ->when($this->startDate, fn ($q) => $q->whereDate('created_at', '>=', $this->startDate))
-            ->when($this->endDate, fn ($q) => $q->whereDate('created_at', '<=', $this->endDate))
-            ->when($this->status, fn ($q) => $q->where('status', $this->status))
-            ->when($this->departmentId, fn ($q) => $q->where('department_id', $this->departmentId))
-            ->when($this->priority, fn ($q) => $q->where('priority', $this->priority));
+            ->when($this->startDate, fn($q) => $q->whereDate('created_at', '>=', $this->startDate))
+            ->when($this->endDate, fn($q) => $q->whereDate('created_at', '<=', $this->endDate))
+            ->when($this->status, fn($q) => $q->where('status', $this->status))
+            ->when($this->departmentId, fn($q) => $q->where('department_id', $this->departmentId))
+            ->when($this->priority, fn($q) => $q->where('priority', $this->priority));
     }
 
     public function render()
@@ -57,9 +57,7 @@ class Index extends Component
         $stats = [
             'total' => (clone $filtered)->count(),
             'open' => (clone $filtered)->where('status', 'OPEN')->count(),
-            'assigned' => (clone $filtered)->where('status', 'ASSIGNED')->count(),
             'in_progress' => (clone $filtered)->where('status', 'IN_PROGRESS')->count(),
-            'waiting_user' => (clone $filtered)->where('status', 'WAITING_USER')->count(),
             'resolved' => (clone $filtered)->where('status', 'RESOLVED')->count(),
             'closed' => (clone $filtered)->where('status', 'CLOSED')->count(),
         ];
@@ -114,7 +112,7 @@ class Index extends Component
 
         return Excel::download(
             new TicketReportExport($tickets),
-            'laporan-ticket-'.now()->format('Ymd-His').'.xlsx',
+            'laporan-ticket-' . now()->format('Ymd-His') . '.xlsx',
         );
     }
 }

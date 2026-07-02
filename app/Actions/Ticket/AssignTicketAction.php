@@ -2,7 +2,6 @@
 
 namespace App\Actions\Ticket;
 
-use App\Enums\TicketStatus;
 use App\Events\Ticket\TicketAssigned;
 use App\Models\Ticket;
 use App\Models\User;
@@ -20,10 +19,6 @@ class AssignTicketAction
                 'assigned_at' => now(),
             ]);
 
-            if ($ticket->status === TicketStatus::OPEN->value) {
-                $ticket->update(['status' => TicketStatus::ASSIGNED->value]);
-            }
-
             TicketAssigned::dispatch($ticket, $assignedTo, $assignedBy);
 
             ActivityLogger::log(
@@ -32,7 +27,10 @@ class AssignTicketAction
                 user: $assignedBy,
                 subjectType: Ticket::class,
                 subjectId: $ticket->id,
-                properties: ['field' => 'assigned_to', 'new_value' => $assignedTo->name],
+                properties: [
+                    'field' => 'assigned_to',
+                    'new_value' => $assignedTo->name,
+                ],
             );
 
             return $ticket->fresh();

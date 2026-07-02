@@ -7,50 +7,81 @@ use App\Enums\TicketStatus;
 use App\Events\Ticket\TicketCreated;
 use App\Models\Ticket;
 use App\Support\ActivityLogger;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
+use RuntimeException;
 
 class CreateTicketAction
 {
     public function execute(array $data): Ticket
     {
-        return DB::transaction(function () use ($data) {
-            $ticket = Ticket::create([
-                'ticket_number' => $this->generateTicketNumber(),
-                'requester_id' => $data['requester_id'],
-                'requester_name' => $data['requester_name'] ?? null,
-                'department_id' => $data['department_id'] ?? null,
-                'category_id' => $data['category_id'] ?? null,
-                'title' => $data['title'],
-                'description' => $data['description'],
-                'priority' => $data['priority'] ?? TicketPriority::MEDIUM->value,
-                'status' => TicketStatus::OPEN->value,
-            ]);
+        $maxAttempts = 5;
 
-            TicketCreated::dispatch($ticket);
+        for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
+            try {
+                return DB::transaction(function () use ($data) {
+                    $ticketNumber = $this->generateTicketNumber();
 
-            ActivityLogger::log(
-                'created',
-                "Membuat ticket {$ticket->ticket_number}",
-                subjectType: Ticket::class,
-                subjectId: $ticket->id,
-                properties: ['title' => $ticket->title, 'status' => $ticket->status],
-            );
+                    $ticket = Ticket::create([
+                        'ticket_number' => $ticketNumber,
+                        'requester_id' => $data['requester_id'],
+                        'requester_name' => $data['requester_name'] ?? null,
+                        'department_id' => $data['department_id'] ?? null,
+                        'category_id' => $data['category_id'] ?? null,
+                        'title' => $data['title'],
+                        'description' => $data['description'],
+                        'priority' => $data['priority'] ?? TicketPriority::MEDIUM->value,
+                        'status' => TicketStatus::OPEN->value,
+                    ]);
 
-            return $ticket;
-        });
+                    TicketCreated::dispatch($ticket);
+
+                    ActivityLogger::log(
+                        'created',
+                        "Membuat ticket {$ticket->ticket_number}",
+                        subjectType: Ticket::class,
+                        subjectId: $ticket->id,
+                        properties: [
+                            'title' => $ticket->title,
+                            'status' => $ticket->status,
+                        ],
+                    );
+
+                    return $ticket;
+                });
+            } catch (QueryException $e) {
+                if (! $this->isDuplicateTicketNumberError($e)) {
+                    throw $e;
+                }
+
+                if ($attempt === $maxAttempts) {
+                    throw $e;
+                }
+
+                usleep(100000);
+            }
+        }
+
+        throw new RuntimeException('Gagal membuat ticket number unik.');
     }
 
     private function generateTicketNumber(): string
     {
-        $prefix = 'TKT-'.now()->format('Ymd');
+        $prefix = 'TKT-' . now()->format('Ymd');
 
-        $last = Ticket::where('ticket_number', 'like', $prefix.'-%')
-            ->orderBy('ticket_number', 'desc')
+        $last = Ticket::withTrashed()
+            ->where('ticket_number', 'like', $prefix . '-%')
+            ->orderByDesc('ticket_number')
             ->lockForUpdate()
             ->value('ticket_number');
 
         $sequence = $last ? (int) substr($last, -4) + 1 : 1;
 
-        return $prefix.'-'.str_pad($sequence, 4, '0', STR_PAD_LEFT);
+        return $prefix . '-' . str_pad($sequence, 4, '0', STR_PAD_LEFT);
+    }
+
+    private function isDuplicateTicketNumberError(QueryException $e): bool
+    {
+        return ($e->errorInfo[1] ?? null) === 1062;
     }
 }

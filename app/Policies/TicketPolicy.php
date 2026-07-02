@@ -29,12 +29,12 @@ class TicketPolicy
 
     public function assign(User $user, Ticket $ticket): bool
     {
-        return $user->can('ticket.assign') && $ticket->status !== 'CLOSED' && $ticket->status !== 'CANCELLED';
+        return $user->can('ticket.assign') && $ticket->status !== 'CLOSED';
     }
 
     public function close(User $user, Ticket $ticket): bool
     {
-        return $user->can('ticket.close') && ! in_array($ticket->status, ['CLOSED', 'CANCELLED']);
+        return $user->can('ticket.close') && $ticket->status !== 'CLOSED';
     }
 
     public function reopen(User $user, Ticket $ticket): bool
