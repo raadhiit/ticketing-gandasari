@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\ActivityLog\Index as ActivityLog;
 use App\Livewire\Dashboard\Index as Dashboard;
 use App\Livewire\Report\Index as Report;
 use App\Livewire\Ticket\Create;
@@ -23,6 +24,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('/reports', Report::class)
         ->middleware('can:report.view')
         ->name('reports');
+
+    Route::livewire('/activity-log', ActivityLog::class)
+        ->middleware('can:activity-log.view')
+        ->name('activity-log');
 });
 
 require __DIR__.'/settings.php';

@@ -3,6 +3,7 @@
 namespace App\Livewire\Settings;
 
 use App\Models\TicketCategory;
+use App\Support\ActivityLogger;
 use Flux\Flux;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -52,10 +53,19 @@ class TicketCategories extends Component
 
         $this->validate();
 
-        TicketCategory::updateOrCreate(['id' => $this->editId], [
+        $category = TicketCategory::updateOrCreate(['id' => $this->editId], [
             'name' => $this->name,
             'description' => $this->description,
         ]);
+
+        ActivityLogger::log(
+            $this->editId ? 'updated' : 'created',
+            $this->editId
+                ? "Memperbarui kategori {$category->name}"
+                : "Menambahkan kategori {$category->name}",
+            subjectType: TicketCategory::class,
+            subjectId: $category->id,
+        );
 
         Flux::toast($this->editId ? 'Kategori berhasil diperbarui' : 'Kategori berhasil ditambahkan', variant: 'success');
 
@@ -77,6 +87,13 @@ class TicketCategories extends Component
         $category = TicketCategory::findOrFail($id);
 
         $this->authorize('delete', $category);
+
+        ActivityLogger::log(
+            'deleted',
+            "Menghapus kategori {$category->name}",
+            subjectType: TicketCategory::class,
+            subjectId: $category->id,
+        );
 
         $category->delete();
 

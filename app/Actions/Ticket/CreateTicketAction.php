@@ -6,6 +6,7 @@ use App\Enums\TicketPriority;
 use App\Enums\TicketStatus;
 use App\Events\Ticket\TicketCreated;
 use App\Models\Ticket;
+use App\Support\ActivityLogger;
 use Illuminate\Support\Facades\DB;
 
 class CreateTicketAction
@@ -26,6 +27,14 @@ class CreateTicketAction
             ]);
 
             TicketCreated::dispatch($ticket);
+
+            ActivityLogger::log(
+                'created',
+                "Membuat ticket {$ticket->ticket_number}",
+                subjectType: Ticket::class,
+                subjectId: $ticket->id,
+                properties: ['title' => $ticket->title, 'status' => $ticket->status],
+            );
 
             return $ticket;
         });

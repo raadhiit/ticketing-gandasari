@@ -24,6 +24,7 @@ class Ticket extends Model
         'priority',
         'status',
         'closed_at',
+        'deleted_by',
     ];
 
     protected function casts(): array
@@ -71,5 +72,10 @@ class Ticket extends Model
     public function histories(): HasMany
     {
         return $this->hasMany(TicketHistory::class);
+    }
+
+    public function deletedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'deleted_by');
     }
 }

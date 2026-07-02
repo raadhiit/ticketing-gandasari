@@ -4,6 +4,7 @@ namespace App\Livewire\Settings;
 
 use App\Models\Department;
 use App\Models\User;
+use App\Support\ActivityLogger;
 use Flux\Flux;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -91,6 +92,16 @@ class Users extends Component
 
         $user->syncRoles([$this->role]);
 
+        ActivityLogger::log(
+            $this->editId ? 'updated' : 'created',
+            $this->editId
+                ? "Memperbarui pengguna {$user->name}"
+                : "Menambahkan pengguna {$user->name}",
+            subjectType: User::class,
+            subjectId: $user->id,
+            properties: ['role' => $this->role, 'email' => $user->email],
+        );
+
         Flux::toast($this->editId ? 'Pengguna berhasil diperbarui' : 'Pengguna berhasil ditambahkan', variant: 'success');
 
         $this->resetForm();
@@ -111,6 +122,14 @@ class Users extends Component
         $user = User::findOrFail($id);
 
         $this->authorize('delete', $user);
+
+        ActivityLogger::log(
+            'deleted',
+            "Menghapus pengguna {$user->name}",
+            subjectType: User::class,
+            subjectId: $user->id,
+            properties: ['email' => $user->email],
+        );
 
         $user->delete();
 

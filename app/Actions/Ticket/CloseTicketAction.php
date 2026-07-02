@@ -6,6 +6,7 @@ use App\Enums\TicketStatus;
 use App\Events\Ticket\TicketClosed;
 use App\Models\Ticket;
 use App\Models\User;
+use App\Support\ActivityLogger;
 use Illuminate\Support\Facades\DB;
 
 class CloseTicketAction
@@ -19,6 +20,15 @@ class CloseTicketAction
             ]);
 
             TicketClosed::dispatch($ticket, $closedBy);
+
+            ActivityLogger::log(
+                'updated',
+                "Menutup ticket {$ticket->ticket_number}",
+                user: $closedBy,
+                subjectType: Ticket::class,
+                subjectId: $ticket->id,
+                properties: ['field' => 'status', 'new_value' => 'CLOSED'],
+            );
 
             return $ticket->fresh();
         });

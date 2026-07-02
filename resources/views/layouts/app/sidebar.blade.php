@@ -30,6 +30,11 @@
                             {{ __('Laporan') }}
                         </flux:sidebar.item>
                     @endcan
+                    @can('activity-log.view')
+                        <flux:sidebar.item icon="clock" :href="route('activity-log')" :current="request()->routeIs('activity-log')" wire:navigate>
+                            {{ __('Activity Log') }}
+                        </flux:sidebar.item>
+                    @endcan
                 </flux:sidebar.group>
 
                 @can('settings.manage')

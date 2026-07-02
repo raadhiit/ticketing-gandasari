@@ -13,7 +13,7 @@ class RoleAndPermissionSeeder extends Seeder
     {
         app()->make(PermissionRegistrar::class)->forgetCachedPermissions();
 
-        $all = ['ticket.create', 'ticket.view', 'ticket.edit', 'ticket.assign', 'ticket.close', 'ticket.reopen', 'ticket.comment', 'ticket.comment.internal', 'ticket.delete', 'settings.manage', 'report.view'];
+        $all = ['ticket.create', 'ticket.view', 'ticket.edit', 'ticket.assign', 'ticket.close', 'ticket.reopen', 'ticket.comment', 'ticket.comment.internal', 'ticket.delete', 'settings.manage', 'report.view', 'activity-log.view'];
 
         $created = [];
         foreach ($all as $name) {
@@ -24,7 +24,7 @@ class RoleAndPermissionSeeder extends Seeder
         $user->syncPermissions([$created['ticket.create'], $created['ticket.view'], $created['ticket.edit'], $created['ticket.comment']]);
 
         $agent = Role::findOrCreate('IT ERP');
-        $agent->syncPermissions([$created['ticket.create'], $created['ticket.view'], $created['ticket.edit'], $created['ticket.assign'], $created['ticket.close'], $created['ticket.reopen'], $created['ticket.comment'], $created['ticket.comment.internal'], $created['ticket.delete']]);
+        $agent->syncPermissions([$created['ticket.create'], $created['ticket.view'], $created['ticket.edit'], $created['ticket.assign'], $created['ticket.close'], $created['ticket.reopen'], $created['ticket.comment'], $created['ticket.comment.internal'], $created['ticket.delete'], $created['activity-log.view']]);
 
         $admin = Role::findOrCreate('supermadin');
         $admin->syncPermissions(array_values($created));

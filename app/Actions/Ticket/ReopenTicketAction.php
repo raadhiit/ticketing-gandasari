@@ -6,6 +6,7 @@ use App\Enums\TicketStatus;
 use App\Events\Ticket\TicketReopened;
 use App\Models\Ticket;
 use App\Models\User;
+use App\Support\ActivityLogger;
 use Illuminate\Support\Facades\DB;
 
 class ReopenTicketAction
@@ -19,6 +20,15 @@ class ReopenTicketAction
             ]);
 
             TicketReopened::dispatch($ticket, $reopenedBy);
+
+            ActivityLogger::log(
+                'updated',
+                "Membuka kembali ticket {$ticket->ticket_number}",
+                user: $reopenedBy,
+                subjectType: Ticket::class,
+                subjectId: $ticket->id,
+                properties: ['field' => 'status', 'old_value' => 'CLOSED', 'new_value' => $ticket->status],
+            );
 
             return $ticket->fresh();
         });

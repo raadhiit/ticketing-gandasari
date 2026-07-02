@@ -6,6 +6,7 @@ use App\Enums\TicketPriority;
 use App\Events\Ticket\TicketUpdated;
 use App\Models\Ticket;
 use App\Models\User;
+use App\Support\ActivityLogger;
 use Illuminate\Support\Facades\DB;
 
 class UpdateTicketAction
@@ -49,6 +50,15 @@ class UpdateTicketAction
             $ticket->update($updateData);
 
             TicketUpdated::dispatch($ticket, $changedFields, $performedBy);
+
+            ActivityLogger::log(
+                'updated',
+                "Memperbarui ticket {$ticket->ticket_number}",
+                user: $performedBy,
+                subjectType: Ticket::class,
+                subjectId: $ticket->id,
+                properties: ['changed_fields' => $changedFields],
+            );
 
             return $ticket->fresh();
         });

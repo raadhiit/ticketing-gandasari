@@ -6,6 +6,7 @@ use App\Events\Ticket\TicketCommentAdded;
 use App\Models\Ticket;
 use App\Models\TicketComment;
 use App\Models\User;
+use App\Support\ActivityLogger;
 use Illuminate\Support\Facades\DB;
 
 class AddCommentAction
@@ -20,6 +21,17 @@ class AddCommentAction
             ]);
 
             TicketCommentAdded::dispatch($comment);
+
+            ActivityLogger::log(
+                'updated',
+                $data['is_internal']
+                    ? "Menambahkan catatan internal pada ticket {$ticket->ticket_number}"
+                    : "Menambahkan komentar pada ticket {$ticket->ticket_number}",
+                user: $user,
+                subjectType: Ticket::class,
+                subjectId: $ticket->id,
+                properties: ['field' => 'comment', 'is_internal' => $data['is_internal'] ?? false],
+            );
 
             return $comment;
         });

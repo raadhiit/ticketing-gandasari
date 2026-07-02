@@ -3,6 +3,7 @@
 namespace App\Livewire\Settings;
 
 use App\Models\Department;
+use App\Support\ActivityLogger;
 use Flux\Flux;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -52,10 +53,19 @@ class Departments extends Component
 
         $this->validate();
 
-        Department::updateOrCreate(['id' => $this->editId], [
+        $department = Department::updateOrCreate(['id' => $this->editId], [
             'name' => $this->name,
             'description' => $this->description,
         ]);
+
+        ActivityLogger::log(
+            $this->editId ? 'updated' : 'created',
+            $this->editId
+                ? "Memperbarui departemen {$department->name}"
+                : "Menambahkan departemen {$department->name}",
+            subjectType: Department::class,
+            subjectId: $department->id,
+        );
 
         Flux::toast($this->editId ? 'Departemen berhasil diperbarui' : 'Departemen berhasil ditambahkan', variant: 'success');
 
@@ -77,6 +87,13 @@ class Departments extends Component
         $department = Department::findOrFail($id);
 
         $this->authorize('delete', $department);
+
+        ActivityLogger::log(
+            'deleted',
+            "Menghapus departemen {$department->name}",
+            subjectType: Department::class,
+            subjectId: $department->id,
+        );
 
         $department->delete();
 
