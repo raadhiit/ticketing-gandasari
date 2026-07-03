@@ -1,6 +1,6 @@
-@import 'tailwindcss';
-@import '../../vendor/livewire/flux/dist/flux.css';
-@import 'trix/dist/trix.css';
+@import "tailwindcss";
+@import "../../vendor/livewire/flux/dist/flux.css";
+@import "trix/dist/trix.css";
 
 @source '../views';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
@@ -10,7 +10,10 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans:
+        "Instrument Sans", ui-sans-serif, system-ui, sans-serif,
+        "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
+        "Noto Color Emoji";
 
     --color-zinc-50: #fafafa;
     --color-zinc-100: #f5f5f5;
@@ -24,10 +27,14 @@
     --color-zinc-900: #171717;
     --color-zinc-950: #0a0a0a;
 
-    --color-accent: var(--color-neutral-800);
-    --color-accent-content: var(--color-neutral-800);
-    --color-accent-foreground: var(--color-white);
+    --color-accent: #0f766e;
+    --color-accent-content: #0f766e;
+    --color-accent-foreground: #ffffff;
 }
+
+/* =========================
+   Dark Theme Variables
+   ========================= */
 
 @layer theme {
     .dark {
@@ -37,8 +44,11 @@
     }
 }
 
-@layer base {
+/* =========================
+   Base
+   ========================= */
 
+@layer base {
     *,
     ::after,
     ::before,
@@ -46,14 +56,47 @@
     ::file-selector-button {
         border-color: var(--color-gray-200, currentColor);
     }
+
+    html {
+        @apply antialiased;
+    }
+
+    body {
+        @apply text-sm leading-relaxed;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4 {
+        @apply font-semibold tracking-tight;
+    }
+
+    html:not(.dark) body {
+        background:
+            radial-gradient(circle at top left, rgba(15, 118, 110, 0.07), transparent 30rem),
+            linear-gradient(180deg, #f7faf8 0%, #f2f6f4 100%);
+        color: #172033;
+    }
+
+    html:not(.dark) h1,
+    html:not(.dark) h2,
+    html:not(.dark) h3,
+    html:not(.dark) h4 {
+        color: #111827;
+    }
 }
+
+/* =========================
+   Flux Field
+   ========================= */
 
 [data-flux-field]:not(ui-radio, ui-checkbox) {
     @apply grid gap-2;
 }
 
 [data-flux-label] {
-    @apply  !mb-0 !leading-tight;
+    @apply !mb-0 !leading-tight;
 }
 
 input:focus[data-flux-control],
@@ -62,21 +105,118 @@ select:focus[data-flux-control] {
     @apply outline-hidden ring-2 ring-accent ring-offset-2 ring-offset-accent-foreground;
 }
 
+/* =========================
+   Custom Utilities
+   ========================= */
+
 @utility shadow-card {
-    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.06);
+    box-shadow:
+        0 1px 3px 0 rgb(0 0 0 / 0.04),
+        0 1px 2px -1px rgb(0 0 0 / 0.06);
 }
 
 @utility shadow-card-hover {
-    box-shadow: 0 4px 12px 0 rgb(0 0 0 / 0.06), 0 2px 4px -2px rgb(0 0 0 / 0.08);
+    box-shadow:
+        0 4px 12px 0 rgb(0 0 0 / 0.06),
+        0 2px 4px -2px rgb(0 0 0 / 0.08);
 }
 
+/* =========================
+   Light Mode Tuning
+   ========================= */
+
+@layer utilities {
+    html:not(.dark) .bg-zinc-50 {
+        background-color: #f8faf9;
+    }
+
+    html:not(.dark) .bg-zinc-100 {
+        background-color: #eef4f1;
+    }
+
+    html:not(.dark) .border-zinc-200 {
+        border-color: #dfe7e3;
+    }
+
+    html:not(.dark) .text-zinc-500 {
+        color: #647067;
+    }
+
+    html:not(.dark) .text-zinc-600 {
+        color: #4b5a52;
+    }
+
+    html:not(.dark) .shadow-card {
+        box-shadow:
+            0 1px 2px rgb(15 23 42 / 0.04),
+            0 8px 24px rgb(15 23 42 / 0.05);
+    }
+
+    html:not(.dark) .bg-sky-400 {
+        background-color: #38bdf8;
+    }
+
+    html:not(.dark) .bg-sky-500 {
+        background-color: #0ea5e9;
+    }
+
+    html:not(.dark) .bg-amber-400 {
+        background-color: #f59e0b;
+    }
+
+    html:not(.dark) .bg-amber-500 {
+        background-color: #d97706;
+    }
+
+    html:not(.dark) .bg-emerald-400 {
+        background-color: #10b981;
+    }
+
+    html:not(.dark) .bg-emerald-500 {
+        background-color: #059669;
+    }
+
+    html:not(.dark) .bg-rose-400 {
+        background-color: #fb7185;
+    }
+
+    html:not(.dark) .bg-rose-500 {
+        background-color: #f43f5e;
+    }
+}
+
+/* =========================
+   Light Mode Form Surface
+   ========================= */
+
+html:not(.dark) input[data-flux-control],
+html:not(.dark) textarea[data-flux-control],
+html:not(.dark) select[data-flux-control] {
+    background-color: #fbfdfc;
+    border-color: #dbe5df;
+    color: #172033;
+}
+
+html:not(.dark) input[data-flux-control]::placeholder,
+html:not(.dark) textarea[data-flux-control]::placeholder {
+    color: #8a968f;
+}
+
+/* =========================
+   Modal
+   ========================= */
+
 [data-flux-modal] > dialog::backdrop {
-    background-color: rgba(0, 0, 0, 0.50) !important;
+    background-color: rgba(0, 0, 0, 0.5) !important;
 }
 
 .dark [data-flux-modal] > dialog::backdrop {
-    background-color: rgba(0, 0, 0, 0.70) !important;
+    background-color: rgba(0, 0, 0, 0.7) !important;
 }
+
+/* =========================
+   Toast
+   ========================= */
 
 [data-flux-toast-dialog][data-variant="success"] > div {
     background-color: #ecfdf5 !important;
@@ -133,23 +273,23 @@ trix-toolbar .trix-button-row {
 trix-toolbar .trix-button-group {
     overflow: hidden;
     border-radius: 0.5rem;
-    border-color: #d4d4d8;
+    border-color: #dbe5df;
     background: #ffffff;
 }
 
 trix-toolbar .trix-button {
-    border-color: #d4d4d8;
+    border-color: #dbe5df;
     background: #ffffff;
-    color: #18181b;
+    color: #172033;
 }
 
 trix-toolbar .trix-button:hover {
-    background: #f4f4f5;
+    background: #f1f5f3;
 }
 
 trix-toolbar .trix-button.trix-active {
-    background: #e0f2fe;
-    color: #0369a1;
+    background: #ccfbf1;
+    color: #0f766e;
 }
 
 trix-toolbar .trix-button:disabled {
@@ -159,15 +299,15 @@ trix-toolbar .trix-button:disabled {
 trix-editor {
     min-height: 10rem;
     border-radius: 0.75rem;
-    border-color: #d4d4d8;
-    background: #ffffff;
-    color: #18181b;
+    border-color: #dbe5df;
+    background: #fbfdfc;
+    color: #172033;
 }
 
 trix-editor:focus {
     outline: none;
-    border-color: #71717a;
-    box-shadow: 0 0 0 1px #71717a;
+    border-color: #0f766e;
+    box-shadow: 0 0 0 1px #0f766e;
 }
 
 .trix-content {
@@ -208,7 +348,7 @@ trix-editor:focus {
 }
 
 .trix-content a {
-    color: #2563eb;
+    color: #0f766e;
     text-decoration: underline;
 }
 
@@ -333,6 +473,10 @@ trix-editor:focus {
     color: #a1a1aa;
 }
 
+/* =========================
+   File Input - Dark Mode
+   ========================= */
+
 .dark input[type="file"]::file-selector-button {
     border: 0;
     border-radius: 0.75rem;
@@ -344,18 +488,4 @@ trix-editor:focus {
 
 .dark input[type="file"]::file-selector-button:hover {
     background: #3f3f46;
-}
-
-@layer base {
-    html {
-        @apply antialiased;
-    }
-
-    body {
-        @apply text-sm leading-relaxed;
-    }
-
-    h1, h2, h3, h4 {
-        @apply font-semibold tracking-tight;
-    }
 }

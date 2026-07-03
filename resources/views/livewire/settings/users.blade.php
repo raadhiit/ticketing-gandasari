@@ -93,7 +93,7 @@
                             <td class="px-5 py-3 text-sm text-zinc-600 dark:text-zinc-400">{{ $user->email }}</td>
                             <td class="px-5 py-3 text-sm text-zinc-600 dark:text-zinc-400">{{ $user->department?->name ?? '-' }}</td>
                             <td class="px-5 py-3">
-                                <flux:badge color="{{ $user->roles->first()?->name === 'supermadin' ? 'red' : ($user->roles->first()?->name === 'IT ERP' ? 'blue' : 'slate') }}" size="sm" class="font-medium">
+                                <flux:badge color="{{ $user->roles->first()?->name === 'superadmin' ? 'red' : ($user->roles->first()?->name === 'IT ERP' ? 'blue' : 'slate') }}" size="sm" class="font-medium">
                                     {{ $user->roles->first()?->name ?? '-' }}
                                 </flux:badge>
                             </td>

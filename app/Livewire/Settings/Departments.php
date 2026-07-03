@@ -22,7 +22,7 @@ class Departments extends Component
     protected function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:100', 'unique:departments,name,'.$this->editId],
+            'name' => ['required', 'string', 'max:100', 'unique:departments,name,' . $this->editId],
             'description' => ['nullable', 'string', 'max:255'],
         ];
     }
@@ -49,25 +49,43 @@ class Departments extends Component
 
     public function save(): void
     {
-        $this->authorize($this->editId ? 'update' : 'create', Department::class);
-
         $this->validate();
 
-        $department = Department::updateOrCreate(['id' => $this->editId], [
-            'name' => $this->name,
-            'description' => $this->description,
-        ]);
+        if ($this->editId) {
+            $department = Department::findOrFail($this->editId);
 
-        ActivityLogger::log(
-            $this->editId ? 'updated' : 'created',
-            $this->editId
-                ? "Memperbarui departemen {$department->name}"
-                : "Menambahkan departemen {$department->name}",
-            subjectType: Department::class,
-            subjectId: $department->id,
-        );
+            $this->authorize('update', $department);
 
-        Flux::toast($this->editId ? 'Departemen berhasil diperbarui' : 'Departemen berhasil ditambahkan', variant: 'success');
+            $department->update([
+                'name' => $this->name,
+                'description' => $this->description,
+            ]);
+
+            ActivityLogger::log(
+                'updated',
+                "Memperbarui departemen {$department->name}",
+                subjectType: Department::class,
+                subjectId: $department->id,
+            );
+
+            Flux::toast('Departemen berhasil diperbarui', variant: 'success');
+        } else {
+            $this->authorize('create', Department::class);
+
+            $department = Department::create([
+                'name' => $this->name,
+                'description' => $this->description,
+            ]);
+
+            ActivityLogger::log(
+                'created',
+                "Menambahkan departemen {$department->name}",
+                subjectType: Department::class,
+                subjectId: $department->id,
+            );
+
+            Flux::toast('Departemen berhasil ditambahkan', variant: 'success');
+        }
 
         $this->resetForm();
     }

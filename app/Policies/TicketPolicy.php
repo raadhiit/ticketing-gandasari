@@ -9,7 +9,7 @@ class TicketPolicy
 {
     private function isSupport(User $user): bool
     {
-        return $user->hasAnyRole(['IT ERP', 'supermadin']);
+        return $user->hasAnyRole(['IT ERP', 'superadmin']);
     }
 
     public function viewAny(User $user): bool

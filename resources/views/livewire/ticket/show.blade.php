@@ -514,14 +514,28 @@
 
             {{-- Riwayat --}}
             <flux:card
-                class="p-5 border-l-[3px] border-l-amber-500 dark:border-l-amber-400 dark:bg-zinc-900 dark:border-zinc-700/50 shadow-card">
-                <h2 class="mb-4 text-sm font-semibold text-zinc-900 dark:text-white">
-                    {{ __('Aktivitas Ticket') }}
-                </h2>
+                class="relative overflow-hidden p-5 pl-6 border border-zinc-200 bg-white shadow-card dark:border-zinc-700/50 dark:bg-zinc-900">
+                <span aria-hidden="true"
+                    class="absolute inset-y-0 left-0 w-1 bg-amber-500 dark:bg-amber-400"></span>
+
+                <div class="mb-4 flex items-center justify-between gap-3">
+                    <h2 class="text-sm font-semibold text-zinc-900 dark:text-white">
+                        {{ __('Aktivitas Ticket') }}
+                    </h2>
+
+                    @if ($histories->isNotEmpty())
+                        <span
+                            class="rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-700 ring-1 ring-inset ring-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:ring-amber-500/30">
+                            {{ __('Update terbaru') }}
+                        </span>
+                    @endif
+                </div>
 
                 <div class="space-y-3">
                     @forelse ($histories as $history)
                         @php
+                            $isLatest = $history->id === $latestHistoryId;
+
                             $actionLabel = match ($history->action) {
                                 'created' => 'Ticket dibuat',
                                 'updated' => 'Ticket diperbarui',
@@ -534,25 +548,58 @@
                             };
                         @endphp
 
-                        <div class="border-l-2 border-zinc-200 pl-3 text-sm dark:border-zinc-700">
-                            <div class="text-xs text-zinc-500 dark:text-zinc-500">
-                                {{ $history->created_at->format('d M H:i') }}
-                            </div>
+                        <div @class([
+                            'relative text-sm transition',
+                            'rounded-xl border border-amber-200 bg-amber-50/80 p-3 shadow-sm dark:border-amber-500/30 dark:bg-amber-500/10' => $isLatest,
+                            'border-l-2 border-zinc-200 pl-3 dark:border-zinc-700' => !$isLatest,
+                        ])>
+                            @if ($isLatest)
+                                <div class="mb-2 flex items-center justify-between gap-2">
+                                    <span
+                                        class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-amber-700 ring-1 ring-inset ring-amber-200 dark:bg-amber-500/20 dark:text-amber-200 dark:ring-amber-400/30">
+                                        {{ __('Terbaru') }}
+                                    </span>
 
-                            <div class="font-medium text-zinc-900 dark:text-zinc-100">
+                                    <span class="text-xs text-amber-700/80 dark:text-amber-300/80">
+                                        {{ $history->created_at->format('d M H:i') }}
+                                    </span>
+                                </div>
+                            @else
+                                <div class="text-xs text-zinc-500 dark:text-zinc-500">
+                                    {{ $history->created_at->format('d M H:i') }}
+                                </div>
+                            @endif
+
+                            <div @class([
+                                'font-medium',
+                                'text-amber-950 dark:text-amber-100' => $isLatest,
+                                'text-zinc-900 dark:text-zinc-100' => !$isLatest,
+                            ])>
                                 {{ $history->performedBy?->name ?? '-' }}
                             </div>
 
-                            <div class="text-xs text-zinc-500 dark:text-zinc-400">
+                            <div @class([
+                                'text-xs',
+                                'mt-1 text-amber-800 dark:text-amber-200/90' => $isLatest,
+                                'text-zinc-500 dark:text-zinc-400' => !$isLatest,
+                            ])>
                                 {{ $actionLabel }}
 
                                 @if ($history->old_value && $history->new_value)
                                     :
-                                    <span class="text-zinc-700 dark:text-zinc-300">
+                                    <span @class([
+                                        'font-medium',
+                                        'text-amber-900 dark:text-amber-100' => $isLatest,
+                                        'text-zinc-700 dark:text-zinc-300' => !$isLatest,
+                                    ])>
                                         {{ $history->old_value }}
                                     </span>
                                     →
-                                    <span class="text-zinc-700 dark:text-zinc-300">
+                                    <span @class([
+                                        'font-medium',
+                                        'text-amber-900 dark:text-amber-100' => $isLatest,
+                                        'text-zinc-700 dark:text-zinc-300' => !$isLatest,
+                                    ])>
                                         {{ $history->new_value }}
                                     </span>
                                 @endif

@@ -238,6 +238,8 @@ class Show extends Component
             ->latest()
             ->get();
 
+        $latestHistoryId = $histories->first()?->id;
+
         $currentAssignment = $this->ticket->assignments()
             ->whereNull('unassigned_at')
             ->with('assignedTo')
@@ -253,6 +255,7 @@ class Show extends Component
             'agents' => $agents,
             'comments' => $comments,
             'histories' => $histories,
+            'latestHistoryId' => $latestHistoryId,
             'currentAssignment' => $currentAssignment,
             'attachments' => $attachments,
         ]);

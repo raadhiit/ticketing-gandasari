@@ -22,7 +22,7 @@ class TicketCategories extends Component
     protected function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:100', 'unique:ticket_categories,name,'.$this->editId],
+            'name' => ['required', 'string', 'max:100', 'unique:ticket_categories,name,' . $this->editId],
             'description' => ['nullable', 'string', 'max:255'],
         ];
     }
@@ -49,25 +49,43 @@ class TicketCategories extends Component
 
     public function save(): void
     {
-        $this->authorize($this->editId ? 'update' : 'create', TicketCategory::class);
-
         $this->validate();
 
-        $category = TicketCategory::updateOrCreate(['id' => $this->editId], [
-            'name' => $this->name,
-            'description' => $this->description,
-        ]);
+        if ($this->editId) {
+            $category = TicketCategory::findOrFail($this->editId);
 
-        ActivityLogger::log(
-            $this->editId ? 'updated' : 'created',
-            $this->editId
-                ? "Memperbarui kategori {$category->name}"
-                : "Menambahkan kategori {$category->name}",
-            subjectType: TicketCategory::class,
-            subjectId: $category->id,
-        );
+            $this->authorize('update', $category);
 
-        Flux::toast($this->editId ? 'Kategori berhasil diperbarui' : 'Kategori berhasil ditambahkan', variant: 'success');
+            $category->update([
+                'name' => $this->name,
+                'description' => $this->description,
+            ]);
+
+            ActivityLogger::log(
+                'updated',
+                "Memperbarui kategori {$category->name}",
+                subjectType: TicketCategory::class,
+                subjectId: $category->id,
+            );
+
+            Flux::toast('Kategori berhasil diperbarui', variant: 'success');
+        } else {
+            $this->authorize('create', TicketCategory::class);
+
+            $category = TicketCategory::create([
+                'name' => $this->name,
+                'description' => $this->description,
+            ]);
+
+            ActivityLogger::log(
+                'created',
+                "Menambahkan kategori {$category->name}",
+                subjectType: TicketCategory::class,
+                subjectId: $category->id,
+            );
+
+            Flux::toast('Kategori berhasil ditambahkan', variant: 'success');
+        }
 
         $this->resetForm();
     }

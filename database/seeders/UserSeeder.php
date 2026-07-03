@@ -18,7 +18,7 @@ class UserSeeder extends Seeder
             'password' => bcrypt('password'),
             'department_id' => $it->id,
         ]);
-        $admin->assignRole('supermadin');
+        $admin->assignRole('superadmin');
 
         $agent1 = User::create([
             'name' => 'IT ERP Satu',

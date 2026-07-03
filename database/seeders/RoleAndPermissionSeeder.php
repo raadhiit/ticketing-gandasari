@@ -26,7 +26,7 @@ class RoleAndPermissionSeeder extends Seeder
         $agent = Role::findOrCreate('IT ERP');
         $agent->syncPermissions([$created['ticket.create'], $created['ticket.view'], $created['ticket.edit'], $created['ticket.assign'], $created['ticket.close'], $created['ticket.reopen'], $created['ticket.comment'], $created['ticket.comment.internal'], $created['ticket.delete'], $created['activity-log.view']]);
 
-        $admin = Role::findOrCreate('supermadin');
+        $admin = Role::findOrCreate('superadmin');
         $admin->syncPermissions(array_values($created));
 
         app()->make(PermissionRegistrar::class)->forgetCachedPermissions();

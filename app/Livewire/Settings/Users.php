@@ -73,7 +73,15 @@ class Users extends Component
 
     public function save(): void
     {
-        $this->authorize($this->editId ? 'update' : 'create', User::class);
+        if ($this->editId) {
+            $user = User::findOrFail($this->editId);
+
+            $this->authorize('update', $user);
+        } else {
+            $this->authorize('create', User::class);
+
+            $user = new User();
+        }
 
         $this->validate();
 
@@ -88,21 +96,32 @@ class Users extends Component
             $data['password'] = Hash::make($this->password);
         }
 
-        $user = User::updateOrCreate(['id' => $this->editId], $data);
+        if ($this->editId) {
+            $user->update($data);
+            $action = 'updated';
+            $message = "Memperbarui pengguna {$user->name}";
+            $toast = 'Pengguna berhasil diperbarui';
+        } else {
+            $user = User::create($data);
+            $action = 'created';
+            $message = "Menambahkan pengguna {$user->name}";
+            $toast = 'Pengguna berhasil ditambahkan';
+        }
 
         $user->syncRoles([$this->role]);
 
         ActivityLogger::log(
-            $this->editId ? 'updated' : 'created',
-            $this->editId
-                ? "Memperbarui pengguna {$user->name}"
-                : "Menambahkan pengguna {$user->name}",
+            $action,
+            $message,
             subjectType: User::class,
             subjectId: $user->id,
-            properties: ['role' => $this->role, 'email' => $user->email],
+            properties: [
+                'role' => $this->role,
+                'email' => $user->email,
+            ],
         );
 
-        Flux::toast($this->editId ? 'Pengguna berhasil diperbarui' : 'Pengguna berhasil ditambahkan', variant: 'success');
+        Flux::toast($toast, variant: 'success');
 
         $this->resetForm();
     }
