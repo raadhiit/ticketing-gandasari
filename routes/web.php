@@ -7,6 +7,7 @@ use App\Livewire\Ticket\Create;
 use App\Livewire\Ticket\Edit;
 use App\Livewire\Ticket\Index;
 use App\Livewire\Ticket\Show;
+use App\Http\Controllers\TrixAttachmentController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/login')->name('home');
@@ -28,6 +29,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('/activity-log', ActivityLog::class)
         ->middleware('can:activity-log.view')
         ->name('activity-log');
+
+    Route::post('/trix/attachments', [TrixAttachmentController::class, 'store'])
+        ->middleware('auth')
+        ->name('trix.attachments.store');
 });
 
-require __DIR__.'/settings.php';
+require __DIR__ . '/settings.php';

@@ -30,11 +30,20 @@ class CleanHtml
             'pre',
             'code',
             'a[href|target|rel]',
+            'img[src|alt|width|height]',
         ]));
 
-        $config->set('Attr.AllowedFrameTargets', ['_blank']);
+        $config->set('Attr.AllowedFrameTargets', [
+            '_blank' => true,
+        ]);
+
         $config->set('HTML.Nofollow', true);
         $config->set('HTML.TargetBlank', true);
+
+        $config->set('URI.AllowedSchemes', [
+            'http' => true,
+            'https' => true,
+        ]);
 
         $purifier = new HTMLPurifier($config);
 

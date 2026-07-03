@@ -1,5 +1,6 @@
 @import 'tailwindcss';
 @import '../../vendor/livewire/flux/dist/flux.css';
+@import 'trix/dist/trix.css';
 
 @source '../views';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
@@ -117,16 +118,56 @@ select:focus[data-flux-control] {
     border-color: #9f1239 !important;
 }
 
+/* =========================
+   Trix Editor
+   ========================= */
+
 trix-toolbar {
     margin-bottom: 0.5rem;
 }
 
+trix-toolbar .trix-button-row {
+    gap: 0.5rem;
+}
+
+trix-toolbar .trix-button-group {
+    overflow: hidden;
+    border-radius: 0.5rem;
+    border-color: #d4d4d8;
+    background: #ffffff;
+}
+
+trix-toolbar .trix-button {
+    border-color: #d4d4d8;
+    background: #ffffff;
+    color: #18181b;
+}
+
+trix-toolbar .trix-button:hover {
+    background: #f4f4f5;
+}
+
+trix-toolbar .trix-button.trix-active {
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+trix-toolbar .trix-button:disabled {
+    opacity: 0.45;
+}
+
 trix-editor {
     min-height: 10rem;
+    border-radius: 0.75rem;
+    border-color: #d4d4d8;
+    background: #ffffff;
+    color: #18181b;
 }
 
 trix-editor:focus {
     outline: none;
+    border-color: #71717a;
+    box-shadow: 0 0 0 1px #71717a;
 }
 
 .trix-content {
@@ -152,9 +193,9 @@ trix-editor:focus {
 }
 
 .trix-content blockquote {
-    border-left: 3px solid #d4d4d8;
     margin: 0.75rem 0;
     padding-left: 1rem;
+    border-left: 3px solid #d4d4d8;
     color: #52525b;
 }
 
@@ -171,31 +212,136 @@ trix-editor:focus {
     text-decoration: underline;
 }
 
-.dark .trix-content blockquote {
-    border-left-color: #52525b;
-    color: #a1a1aa;
+.trix-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.75rem;
+    border: 1px solid #e4e4e7;
 }
 
-.dark .trix-content pre {
-    background: #27272a;
+.trix-content figure {
+    margin: 0.75rem 0;
+}
+
+.trix-content figcaption {
+    margin-top: 0.35rem;
+    font-size: 0.75rem;
+    color: #71717a;
+    text-align: center;
+}
+
+/* =========================
+   Trix Editor - Dark Mode
+   ========================= */
+
+.dark trix-toolbar {
+    color: #e4e4e7;
+}
+
+.dark trix-toolbar .trix-button-group {
+    border-color: #3f3f46 !important;
+    background: #18181b !important;
+}
+
+.dark trix-toolbar .trix-button {
+    border-color: #3f3f46 !important;
+    background: #18181b !important;
+    color: #e4e4e7 !important;
+}
+
+.dark trix-toolbar .trix-button:hover {
+    background: #27272a !important;
+}
+
+.dark trix-toolbar .trix-button.trix-active {
+    background: #334155 !important;
+    color: #ffffff !important;
+}
+
+.dark trix-toolbar .trix-button:disabled {
+    background: #18181b !important;
+    color: #52525b !important;
+    opacity: 0.5;
+}
+
+.dark trix-toolbar .trix-button--icon::before {
+    filter: invert(1);
+    opacity: 0.85;
+}
+
+.dark trix-toolbar .trix-button--icon:hover::before {
+    opacity: 1;
+}
+
+.dark trix-toolbar .trix-button--icon:disabled::before {
+    opacity: 0.35;
+}
+
+.dark trix-toolbar .trix-dialog {
+    border-color: #3f3f46 !important;
+    background: #18181b !important;
+    color: #e4e4e7 !important;
+    box-shadow: 0 10px 30px rgb(0 0 0 / 0.35);
+}
+
+.dark trix-toolbar .trix-input--dialog {
+    border-color: #3f3f46 !important;
+    background: #09090b !important;
+    color: #f4f4f5 !important;
+}
+
+.dark trix-toolbar .trix-input--dialog::placeholder {
+    color: #71717a;
+}
+
+.dark trix-editor {
+    border-color: #3f3f46 !important;
+    background: #18181b !important;
+    color: #f4f4f5 !important;
+}
+
+.dark trix-editor:focus {
+    border-color: #52525b !important;
+    box-shadow: 0 0 0 1px #52525b;
+}
+
+.dark .trix-content {
+    color: #f4f4f5;
 }
 
 .dark .trix-content a {
     color: #60a5fa;
 }
 
-.dark trix-toolbar .trix-button {
-    background: #18181b;
-    color: #e4e4e7;
-    border-color: #3f3f46;
+.dark .trix-content blockquote {
+    border-left-color: #52525b;
+    color: #d4d4d8;
 }
 
-.dark trix-toolbar .trix-button-group {
-    border-color: #3f3f46;
-}
-
-.dark trix-toolbar .trix-button.trix-active {
+.dark .trix-content pre {
     background: #27272a;
+    color: #f4f4f5;
+}
+
+.dark .trix-content img {
+    border-color: #3f3f46;
+}
+
+.dark .trix-content figcaption {
+    color: #a1a1aa;
+}
+
+.dark input[type="file"]::file-selector-button {
+    border: 0;
+    border-radius: 0.75rem;
+    background: #27272a;
+    color: #f4f4f5;
+    padding: 0.5rem 1rem;
+    font-weight: 600;
+}
+
+.dark input[type="file"]::file-selector-button:hover {
+    background: #3f3f46;
 }
 
 @layer base {

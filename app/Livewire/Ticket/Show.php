@@ -76,7 +76,6 @@ class Show extends Component
     {
         $this->authorize('comment', $this->ticket);
 
-        // $this->validate(['comment' => ['required', 'min:1']]);
         $this->validate([
             'comment' => [
                 'required',
@@ -89,6 +88,7 @@ class Show extends Component
         ]);
 
         $action = app(AddCommentAction::class);
+
         $action->execute($this->ticket, [
             'comment' => $this->comment,
             'is_internal' => $this->isInternal,
@@ -97,7 +97,9 @@ class Show extends Component
         $this->comment = '';
         $this->isInternal = false;
 
-        Flux::toast('Komentar ditambahkan', variant: 'success');
+        $this->dispatch('trix-clear', id: 'ticket-reply-editor');
+
+        Flux::toast('Balasan berhasil dikirim', variant: 'success');
     }
 
     public function uploadAttachment(): void
@@ -227,7 +229,7 @@ class Show extends Component
                     $q->orWhere('is_internal', true);
                 }
             })
-            ->latest()
+            ->orderBy('created_at', 'asc')
             ->get();
 
         $histories = $this->ticket->histories()

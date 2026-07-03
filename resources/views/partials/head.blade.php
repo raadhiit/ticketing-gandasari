@@ -8,6 +8,8 @@
 <link rel="icon" href="{{ asset('storage/img/logo.png') }}">
 <link rel="apple-touch-icon" href="{{ asset('storage/img/logo.png') }}">
 
+<meta name="csrf-token" content="{{ csrf_token() }}">
+
 @fonts
 
 @vite(['resources/css/app.css', 'resources/js/app.js'])
