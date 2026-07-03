@@ -134,7 +134,8 @@ class Show extends Component
         $this->previewUrl = asset('storage/' . $attachment->path);
         $this->previewName = $attachment->filename;
 
-        $this->dispatch('modal-show', name: 'attachment-preview');
+        // $this->dispatch('modal-show', name: 'attachment-preview');
+        Flux::modal('attachment-preview')->show();
     }
 
     public function assign(): void
