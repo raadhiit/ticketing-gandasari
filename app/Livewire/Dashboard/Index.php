@@ -8,6 +8,7 @@ use App\Models\TicketCategory;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Illuminate\Support\Facades\Auth;
 
 #[Title('Dashboard')]
 class Index extends Component
@@ -16,7 +17,7 @@ class Index extends Component
 
     public function mount(): void
     {
-        if (! auth()->user()->can('ticket.assign')) {
+        if (! Auth::user()->can('ticket.assign')) {
             $this->redirect(route('tickets.index'), navigate: true);
         }
     }
@@ -57,7 +58,7 @@ class Index extends Component
             $this->scopePeriod($q);
         }])->get();
 
-        $myTickets = Ticket::whereHas('activeAssignment', fn($q) => $q->where('assigned_to', auth()->id()))
+        $myTickets = Ticket::whereHas('activeAssignment', fn($q) => $q->where('assigned_to', Auth::id()))
             ->whereIn('status', ['OPEN', 'IN_PROGRESS'])
             ->with(['requester', 'department', 'category'])
             ->latest()
