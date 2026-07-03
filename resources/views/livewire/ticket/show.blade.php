@@ -190,9 +190,12 @@
                         class="absolute -left-2 top-5 h-4 w-4 rotate-45 border-b border-l border-zinc-300 bg-white dark:border-zinc-700 dark:bg-zinc-900">
                     </div>
 
-                    <p class="whitespace-pre-line text-[15px] leading-7 text-zinc-900 dark:text-zinc-100">
+                    {{-- <p class="whitespace-pre-line text-[15px] leading-7 text-zinc-900 dark:text-zinc-100">
                         {{ $ticket->description }}
-                    </p>
+                    </p> --}}
+                    <div class="trix-content text-[15px] leading-7 text-zinc-900 dark:text-zinc-100">
+                        {!! \App\Support\CleanHtml::clean($ticket->description) !!}
+                    </div>
                 </div>
             </div>
 
@@ -314,9 +317,12 @@
                                 class="absolute -left-2 top-5 h-4 w-4 rotate-45 border-b border-l border-zinc-300 bg-white dark:border-zinc-700 dark:bg-zinc-900">
                             </div>
 
-                            <p class="whitespace-pre-line text-[15px] leading-7 text-zinc-900 dark:text-zinc-100">
+                            {{-- <p class="whitespace-pre-line text-[15px] leading-7 text-zinc-900 dark:text-zinc-100">
                                 {{ $reply->comment }}
-                            </p>
+                            </p> --}}
+                            <div class="trix-content text-[15px] leading-7 text-zinc-900 dark:text-zinc-100">
+                                {!! \App\Support\CleanHtml::clean($reply->comment) !!}
+                            </div>
                         </div>
                     </div>
                 @empty
@@ -367,9 +373,8 @@
                             </label>
                         @endcan
 
-                        <flux:textarea wire:model="comment" rows="6"
-                            placeholder="{{ __('Tulis balasan untuk ticket ini...') }}"
-                            class="dark:bg-zinc-800 dark:border-zinc-700 dark:text-white dark:placeholder-zinc-500" />
+                        <x-trix-editor id="ticket-reply-editor" wire:model="comment"
+                            placeholder="{{ __('Tulis balasan untuk ticket ini...') }}" />
 
                         <flux:error name="comment" />
 
@@ -523,7 +528,7 @@
             </flux:card>
         </div>
     </div>
-        {{-- Attachment Preview Modal --}}
+    {{-- Attachment Preview Modal --}}
     <flux:modal name="attachment-preview" class="max-w-4xl">
         <div class="p-6">
             <h3 class="mb-4 text-lg font-semibold text-zinc-900 dark:text-white">
@@ -531,11 +536,8 @@
             </h3>
 
             @if ($previewUrl)
-                <img
-                    src="{{ $previewUrl }}"
-                    alt="{{ $previewName }}"
-                    class="mx-auto max-h-[75vh] max-w-full rounded-lg"
-                >
+                <img src="{{ $previewUrl }}" alt="{{ $previewName }}"
+                    class="mx-auto max-h-[75vh] max-w-full rounded-lg">
             @endif
         </div>
     </flux:modal>

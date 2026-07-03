@@ -8,6 +8,7 @@ use App\Models\TicketComment;
 use App\Models\User;
 use App\Support\ActivityLogger;
 use Illuminate\Support\Facades\DB;
+use App\Support\CleanHtml;
 
 class AddCommentAction
 {
@@ -16,7 +17,8 @@ class AddCommentAction
         return DB::transaction(function () use ($ticket, $data, $user) {
             $comment = $ticket->comments()->create([
                 'user_id' => $user->id,
-                'comment' => $data['comment'],
+                // 'comment' => $data['comment'],
+                'comment' => CleanHtml::clean($data['comment']),
                 'is_internal' => $data['is_internal'] ?? false,
             ]);
 

@@ -117,6 +117,87 @@ select:focus[data-flux-control] {
     border-color: #9f1239 !important;
 }
 
+trix-toolbar {
+    margin-bottom: 0.5rem;
+}
+
+trix-editor {
+    min-height: 10rem;
+}
+
+trix-editor:focus {
+    outline: none;
+}
+
+.trix-content {
+    word-break: break-word;
+}
+
+.trix-content div {
+    margin-bottom: 0.5rem;
+}
+
+.trix-content div:last-child {
+    margin-bottom: 0;
+}
+
+.trix-content ul {
+    list-style: disc;
+    margin-left: 1.25rem;
+}
+
+.trix-content ol {
+    list-style: decimal;
+    margin-left: 1.25rem;
+}
+
+.trix-content blockquote {
+    border-left: 3px solid #d4d4d8;
+    margin: 0.75rem 0;
+    padding-left: 1rem;
+    color: #52525b;
+}
+
+.trix-content pre {
+    overflow-x: auto;
+    border-radius: 0.75rem;
+    background: #f4f4f5;
+    padding: 0.75rem;
+    font-size: 0.875rem;
+}
+
+.trix-content a {
+    color: #2563eb;
+    text-decoration: underline;
+}
+
+.dark .trix-content blockquote {
+    border-left-color: #52525b;
+    color: #a1a1aa;
+}
+
+.dark .trix-content pre {
+    background: #27272a;
+}
+
+.dark .trix-content a {
+    color: #60a5fa;
+}
+
+.dark trix-toolbar .trix-button {
+    background: #18181b;
+    color: #e4e4e7;
+    border-color: #3f3f46;
+}
+
+.dark trix-toolbar .trix-button-group {
+    border-color: #3f3f46;
+}
+
+.dark trix-toolbar .trix-button.trix-active {
+    background: #27272a;
+}
+
 @layer base {
     html {
         @apply antialiased;

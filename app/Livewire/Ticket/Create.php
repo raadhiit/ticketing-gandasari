@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use App\Support\CleanHtml;
 
 #[Title('Buat Ticket Baru')]
 class Create extends Component
@@ -41,7 +42,15 @@ class Create extends Component
     {
         return [
             'title' => ['required', 'min:5', 'max:200'],
-            'description' => ['required'],
+            // 'description' => ['required'],
+            'description' => [
+                'required',
+                function (string $attribute, mixed $value, \Closure $fail) {
+                    if (CleanHtml::plainText($value) === '') {
+                        $fail(__('Deskripsi wajib diisi.'));
+                    }
+                },
+            ],
             'category_id' => ['nullable', 'exists:ticket_categories,id'],
             'department_id' => ['nullable', 'exists:departments,id'],
             'priority' => ['required', 'in:LOW,MEDIUM,HIGH,URGENT'],

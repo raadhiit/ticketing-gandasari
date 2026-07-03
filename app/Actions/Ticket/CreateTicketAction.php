@@ -10,6 +10,7 @@ use App\Support\ActivityLogger;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
+use App\Support\CleanHtml;
 
 class CreateTicketAction
 {
@@ -29,7 +30,8 @@ class CreateTicketAction
                         'department_id' => $data['department_id'] ?? null,
                         'category_id' => $data['category_id'] ?? null,
                         'title' => $data['title'],
-                        'description' => $data['description'],
+                        // 'description' => $data['description'],
+                        'description' => CleanHtml::clean($data['description']),
                         'priority' => $data['priority'] ?? TicketPriority::MEDIUM->value,
                         'status' => TicketStatus::OPEN->value,
                     ]);

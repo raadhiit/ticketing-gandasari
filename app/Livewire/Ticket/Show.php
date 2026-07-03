@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use App\Support\CleanHtml;
 
 #[Title('Detail Ticket')]
 class Show extends Component
@@ -75,7 +76,17 @@ class Show extends Component
     {
         $this->authorize('comment', $this->ticket);
 
-        $this->validate(['comment' => ['required', 'min:1']]);
+        // $this->validate(['comment' => ['required', 'min:1']]);
+        $this->validate([
+            'comment' => [
+                'required',
+                function (string $attribute, mixed $value, \Closure $fail) {
+                    if (CleanHtml::plainText($value) === '') {
+                        $fail(__('Balasan wajib diisi.'));
+                    }
+                },
+            ],
+        ]);
 
         $action = app(AddCommentAction::class);
         $action->execute($this->ticket, [

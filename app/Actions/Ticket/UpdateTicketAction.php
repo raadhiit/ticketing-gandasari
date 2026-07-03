@@ -7,6 +7,7 @@ use App\Events\Ticket\TicketUpdated;
 use App\Models\Ticket;
 use App\Models\User;
 use App\Support\ActivityLogger;
+use App\Support\CleanHtml;
 use Illuminate\Support\Facades\DB;
 
 class UpdateTicketAction
@@ -29,6 +30,10 @@ class UpdateTicketAction
                     $newValue = $newValue->value;
                 }
 
+                if ($field === 'description') {
+                    $newValue = CleanHtml::clean($newValue);
+                }
+
                 if ((string) $oldValue !== (string) $newValue) {
                     $changedFields[] = [
                         'field' => $field,
@@ -43,6 +48,7 @@ class UpdateTicketAction
             }
 
             $updateData = [];
+
             foreach ($changedFields as $change) {
                 $updateData[$change['field']] = $change['new_value'];
             }
