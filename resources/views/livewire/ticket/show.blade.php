@@ -43,6 +43,14 @@
         'LOW' => 'bg-slate-100 text-slate-700 ring-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:ring-slate-700',
         default => 'bg-zinc-100 text-zinc-700 ring-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:ring-zinc-700',
     };
+
+    $sidebarAccentBar = match ($ticket->status) {
+        'OPEN' => 'bg-sky-400 dark:bg-sky-500',
+        'IN_PROGRESS' => 'bg-amber-400 dark:bg-amber-500',
+        'RESOLVED' => 'bg-emerald-400 dark:bg-emerald-500',
+        'CLOSED' => 'bg-rose-400 dark:bg-rose-500',
+        default => 'bg-zinc-400 dark:bg-zinc-500',
+    };
 @endphp
 
 <div wire:poll.15s="checkNewComments">
@@ -74,39 +82,27 @@
         {{-- Left Thread --}}
         <div class="xl:col-span-2">
             {{-- Ticket Title + Actions --}}
-            <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div class="mb-5 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
                 <div class="min-w-0">
-                    <h1 class="text-2xl font-bold tracking-wide text-zinc-950 dark:text-white sm:text-3xl">
+                    <h1
+                        class="max-w-4xl break-words text-2xl font-bold tracking-wide text-zinc-950 dark:text-white sm:text-3xl">
                         #{{ str_replace('TKT-', '', $ticket->ticket_number) }} {{ $ticket->title }}
                     </h1>
                 </div>
 
-                <div
-                    class="flex shrink-0 items-center rounded-lg border border-zinc-300 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+                <div class="flex flex-row flex-wrap items-center gap-2 lg:flex-nowrap lg:justify-end">
                     @can('update', $ticket)
-                        <a href="{{ route('tickets.edit', $ticket) }}" wire:navigate
-                            class="flex h-10 w-12 items-center justify-center border-r border-zinc-300 text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
-                            title="{{ __('Edit') }}">
-                            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor" stroke-width="1.8">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 7.125 16.875 4.5" />
-                            </svg>
-                        </a>
+                        <flux:button :href="route('tickets.edit', $ticket)" wire:navigate icon="pencil-square"
+                            variant="filled" class="shrink-0">
+                            {{ __('Edit Ticket') }}
+                        </flux:button>
                     @endcan
 
                     @can('close', $ticket)
                         <flux:dropdown>
-                            <button type="button"
-                                class="flex h-10 w-12 items-center justify-center border-r border-zinc-300 text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
-                                title="{{ __('Ubah Status') }}">
-                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                    stroke="currentColor" stroke-width="1.8">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                                </svg>
-                            </button>
+                            <flux:button icon="chevron-down" variant="primary" class="shrink-0">
+                                {{ __('Ubah Status') }}
+                            </flux:button>
 
                             <flux:menu>
                                 @if ($ticket->status === 'OPEN')
@@ -131,19 +127,14 @@
                     @endcan
 
                     @can('reopen', $ticket)
-                        <button wire:click="changeStatus('REOPEN')" type="button"
-                            class="flex h-10 w-12 items-center justify-center border-r border-zinc-300 text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
-                            title="{{ __('Buka Kembali') }}">
-                            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor" stroke-width="1.8">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" />
-                            </svg>
-                        </button>
+                        <flux:button wire:click="changeStatus('REOPEN')" icon="arrow-uturn-left" variant="filled"
+                            class="shrink-0">
+                            {{ __('Buka Kembali') }}
+                        </flux:button>
                     @endcan
 
                     @can('delete', $ticket)
-                        <button type="button" x-data
+                        <flux:button x-data
                             @click="
                                 $dispatch('confirm-open', {
                                     name: 'confirm-ticket-delete',
@@ -151,18 +142,14 @@
                                     message: '{{ __('Yakin ingin menghapus ticket ini? Semua data terkait akan ikut terhapus.') }}',
                                     method: 'delete',
                                     variant: 'danger',
-                                    confirmLabel: '{{ __('Ya') }}'
+                                    confirmLabel: '{{ __('Ya, Hapus') }}'
                                 });
+
                                 $nextTick(() => $flux.modal('confirm-ticket-delete').show());
                             "
-                            class="flex h-10 w-12 items-center justify-center text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/30"
-                            title="{{ __('Hapus') }}">
-                            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor" stroke-width="1.8">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673A2.25 2.25 0 0 1 15.916 21H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                            </svg>
-                        </button>
+                            icon="trash" variant="danger" class="shrink-0">
+                            {{ __('Hapus') }}
+                        </flux:button>
                     @endcan
                 </div>
             </div>
@@ -383,8 +370,8 @@
                                 <form wire:submit="uploadAttachment" class="flex items-center gap-2">
                                     <input type="file" wire:model="attachment"
                                         class="block max-w-xs text-sm text-zinc-600 file:mr-3 file:rounded-lg file:border-0 file:bg-zinc-100 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-zinc-700 hover:file:bg-zinc-200 dark:text-zinc-400 dark:file:bg-zinc-800 dark:file:text-zinc-300" />
-                                    <flux:button type="button" wire:click="uploadAttachment" variant="filled"
-                                        size="sm" wire:loading.attr="disabled" wire:target="attachment">
+                                    <flux:button type="button" wire:click="uploadAttachment" variant="filled" size="sm"
+                                        wire:loading.attr="disabled" wire:target="attachment">
                                         {{ __('Upload') }}
                                     </flux:button>
                                 </form>
@@ -408,82 +395,113 @@
         {{-- Right Sidebar --}}
         <div class="space-y-5 xl:sticky xl:top-5 xl:self-start">
             {{-- Ticket Summary --}}
-            <flux:card class="p-5 dark:bg-zinc-900 dark:border-zinc-700/50 shadow-card">
-                <h2 class="mb-4 text-sm font-semibold text-zinc-900 dark:text-white">{{ __('Detail Ticket') }}</h2>
+            <flux:card
+                class="relative overflow-hidden border border-zinc-200 bg-white p-5 pl-6 shadow-card dark:border-zinc-700/50 dark:bg-zinc-900">
+                <span class="absolute inset-y-0 left-0 w-1 {{ $sidebarAccentBar }}"></span>
 
-                <div class="space-y-4 text-sm">
-                    <div>
+                <h2 class="mb-4 text-sm font-semibold text-zinc-900 dark:text-white">
+                    {{ __('Informasi Ticket') }}
+                </h2>
+
+                <div class="space-y-3 text-sm">
+                    <div class="grid grid-cols-[115px_minmax(0,1fr)] items-start gap-2">
                         <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                            {{ __('Status') }}</p>
-                        <span
-                            class="mt-1 inline-flex items-center rounded-full px-3 py-1 text-xs font-bold ring-1 ring-inset {{ $statusNoticeClasses }}">
-                            {{ str_replace('_', ' ', $ticket->status) }}
-                        </span>
-                    </div>
+                            {{ __('Status') }}
+                        </p>
 
-                    <div>
-                        <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                            {{ __('Prioritas') }}</p>
-                        <span
-                            class="mt-1 inline-flex items-center rounded-full px-3 py-1 text-xs font-bold ring-1 ring-inset {{ $priorityClasses }}">
-                            {{ $ticket->priority }}
-                        </span>
-                    </div>
-
-                    <div>
-                        <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                            {{ __('Requester') }}</p>
-                        <p class="mt-1 font-medium text-zinc-900 dark:text-white">{{ $requesterName }}</p>
-                    </div>
-
-                    <div>
-                        <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                            {{ __('Departemen') }}</p>
-                        <p class="mt-1 font-medium text-zinc-900 dark:text-white">
-                            {{ $ticket->department?->name ?? '-' }}</p>
-                    </div>
-
-                    <div>
-                        <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                            {{ __('Kategori') }}</p>
-                        <p class="mt-1 font-medium text-zinc-900 dark:text-white">
-                            {{ $ticket->category?->name ?? '-' }}</p>
-                    </div>
-
-                    <div>
-                        <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                            {{ __('Dibuat') }}</p>
-                        <p class="mt-1 font-medium text-zinc-900 dark:text-white">
-                            {{ $ticket->created_at->format('d M Y H:i') }}</p>
-                    </div>
-
-                    @if ($currentAssignment)
-                        <div>
-                            <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                                {{ __('Assigned To') }}</p>
-                            <p class="mt-1 font-medium text-zinc-900 dark:text-white">
-                                {{ $currentAssignment->assignedTo->name }}</p>
+                        <div class="min-w-0">
+                            <span
+                                class="inline-flex items-center rounded-full px-3 py-1 text-xs font-bold ring-1 ring-inset {{ $statusNoticeClasses }}">
+                                {{ str_replace('_', ' ', $ticket->status) }}
+                            </span>
                         </div>
-                    @endif
+                    </div>
+
+                    <div class="grid grid-cols-[115px_minmax(0,1fr)] items-start gap-2">
+                        <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                            {{ __('Ditangani') }}
+                        </p>
+
+                        <p class="min-w-0 font-medium text-zinc-900 dark:text-white">
+                            {{ $currentAssignment?->assignedTo?->name ?? __('Belum ditugaskan') }}
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-[115px_minmax(0,1fr)] items-start gap-2">
+                        <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                            {{ __('Pelapor') }}
+                        </p>
+
+                        <p class="min-w-0 font-medium text-zinc-900 dark:text-white">
+                            {{ $requesterName }}
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-[115px_minmax(0,1fr)] items-start gap-2">
+                        <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                            {{ __('Prioritas') }}
+                        </p>
+
+                        <div class="min-w-0">
+                            <span
+                                class="inline-flex items-center rounded-full px-3 py-1 text-xs font-bold ring-1 ring-inset {{ $priorityClasses }}">
+                                {{ $ticket->priority }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-[115px_minmax(0,1fr)] items-start gap-2">
+                        <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                            {{ __('Departemen') }}
+                        </p>
+
+                        <p class="min-w-0 font-medium text-zinc-900 dark:text-white">
+                            {{ $ticket->department?->name ?? '-' }}
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-[115px_minmax(0,1fr)] items-start gap-2">
+                        <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                            {{ __('Kategori') }}
+                        </p>
+
+                        <p class="min-w-0 font-medium text-zinc-900 dark:text-white">
+                            {{ $ticket->category?->name ?? '-' }}
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-[115px_minmax(0,1fr)] items-start gap-2">
+                        <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                            {{ __('Dibuat') }}
+                        </p>
+
+                        <p class="min-w-0 font-medium text-zinc-900 dark:text-white">
+                            {{ $ticket->created_at->format('d M Y H:i') }}
+                        </p>
+                    </div>
                 </div>
             </flux:card>
 
             {{-- Assign --}}
             @can('assign', $ticket)
                 <flux:card id="assign-panel" class="p-5 dark:bg-zinc-900 dark:border-zinc-700/50 shadow-card">
-                    <h2 class="mb-4 text-sm font-semibold text-zinc-900 dark:text-white">{{ __('Assign Ticket') }}</h2>
+                    <h2 class="mb-4 text-sm font-semibold text-zinc-900 dark:text-white">
+                        {{ __('Tugaskan Ticket') }}
+                    </h2>
 
                     <form wire:submit="assign" class="space-y-3">
                         <flux:field>
                             <flux:select wire:model="assignedUserId"
                                 class="dark:bg-zinc-800 dark:border-zinc-700 dark:text-white">
                                 <option value="">{{ __('Pilih agent...') }}</option>
+
                                 @foreach ($agents as $agent)
                                     <option value="{{ $agent->id }}">
                                         {{ $agent->name }} ({{ $agent->department?->name ?? '-' }})
                                     </option>
                                 @endforeach
                             </flux:select>
+
                             <flux:error name="assignedUserId" />
                         </flux:field>
 
@@ -497,11 +515,26 @@
             {{-- Riwayat --}}
             <flux:card
                 class="p-5 border-l-[3px] border-l-amber-500 dark:border-l-amber-400 dark:bg-zinc-900 dark:border-zinc-700/50 shadow-card">
-                <h2 class="text-sm font-semibold text-zinc-900 dark:text-white mb-4">{{ __('Riwayat') }}</h2>
+                <h2 class="mb-4 text-sm font-semibold text-zinc-900 dark:text-white">
+                    {{ __('Aktivitas Ticket') }}
+                </h2>
 
                 <div class="space-y-3">
                     @forelse ($histories as $history)
-                        <div class="text-sm border-l-2 border-zinc-200 dark:border-zinc-700 pl-3">
+                        @php
+                            $actionLabel = match ($history->action) {
+                                'created' => 'Ticket dibuat',
+                                'updated' => 'Ticket diperbarui',
+                                'assigned' => 'Ticket ditugaskan',
+                                'status_changed' => 'Status diubah',
+                                'comment_added' => 'Balasan ditambahkan',
+                                'closed' => 'Ticket ditutup',
+                                'reopened' => 'Ticket dibuka kembali',
+                                default => ucfirst(str_replace('_', ' ', $history->action)),
+                            };
+                        @endphp
+
+                        <div class="border-l-2 border-zinc-200 pl-3 text-sm dark:border-zinc-700">
                             <div class="text-xs text-zinc-500 dark:text-zinc-500">
                                 {{ $history->created_at->format('d M H:i') }}
                             </div>
@@ -511,18 +544,24 @@
                             </div>
 
                             <div class="text-xs text-zinc-500 dark:text-zinc-400">
-                                {{ ucfirst(str_replace('_', ' ', $history->action)) }}
+                                {{ $actionLabel }}
 
                                 @if ($history->old_value && $history->new_value)
                                     :
-                                    <span class="text-zinc-700 dark:text-zinc-300">{{ $history->old_value }}</span>
+                                    <span class="text-zinc-700 dark:text-zinc-300">
+                                        {{ $history->old_value }}
+                                    </span>
                                     →
-                                    <span class="text-zinc-700 dark:text-zinc-300">{{ $history->new_value }}</span>
+                                    <span class="text-zinc-700 dark:text-zinc-300">
+                                        {{ $history->new_value }}
+                                    </span>
                                 @endif
                             </div>
                         </div>
                     @empty
-                        <p class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('Belum ada riwayat') }}</p>
+                        <p class="text-sm text-zinc-500 dark:text-zinc-400">
+                            {{ __('Belum ada aktivitas') }}
+                        </p>
                     @endforelse
                 </div>
             </flux:card>

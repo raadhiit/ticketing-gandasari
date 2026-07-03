@@ -225,6 +225,7 @@ class Show extends Component
             ->with('user')
             ->where(function ($q) {
                 $q->where('is_internal', false);
+
                 if (Auth::user()?->can('ticket.comment.internal')) {
                     $q->orWhere('is_internal', true);
                 }

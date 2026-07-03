@@ -7,6 +7,11 @@ use App\Models\User;
 
 class TicketPolicy
 {
+    private function isSupport(User $user): bool
+    {
+        return $user->hasAnyRole(['IT ERP', 'supermadin']);
+    }
+
     public function viewAny(User $user): bool
     {
         return $user->can('ticket.view') || $user->can('ticket.create');
@@ -24,22 +29,27 @@ class TicketPolicy
 
     public function update(User $user, Ticket $ticket): bool
     {
-        return $user->can('ticket.edit');
+        return $user->hasRole('User')
+            && $ticket->requester_id === $user->id
+            && $ticket->status === 'OPEN';
     }
 
     public function assign(User $user, Ticket $ticket): bool
     {
-        return $user->can('ticket.assign') && $ticket->status !== 'CLOSED';
+        return $this->isSupport($user)
+            && $ticket->status !== 'CLOSED';
     }
 
     public function close(User $user, Ticket $ticket): bool
     {
-        return $user->can('ticket.close') && $ticket->status !== 'CLOSED';
+        return $this->isSupport($user)
+            && $ticket->status !== 'CLOSED';
     }
 
     public function reopen(User $user, Ticket $ticket): bool
     {
-        return $user->can('ticket.reopen') && $ticket->status === 'CLOSED';
+        return $this->isSupport($user)
+            && $ticket->status === 'CLOSED';
     }
 
     public function comment(User $user, Ticket $ticket): bool
@@ -48,16 +58,18 @@ class TicketPolicy
             return false;
         }
 
-        return $user->can('ticket.comment.internal') || $ticket->requester_id === $user->id;
+        return $user->can('ticket.comment.internal')
+            || $ticket->requester_id === $user->id;
     }
 
     public function commentInternal(User $user, Ticket $ticket): bool
     {
-        return $user->can('ticket.comment.internal');
+        return $this->isSupport($user)
+            && $user->can('ticket.comment.internal');
     }
 
     public function delete(User $user, Ticket $ticket): bool
     {
-        return $user->can('ticket.delete');
+        return $this->isSupport($user);
     }
 }
