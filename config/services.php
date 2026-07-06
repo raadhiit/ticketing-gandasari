@@ -34,5 +34,9 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
+    'erp' => [
+        'api_token' => env('ERP_API_TOKEN'),
+        'sso_ttl_minutes' => env('ERP_SSO_TTL_MINUTES', 2),
+    ],
 
 ];

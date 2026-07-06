@@ -9,8 +9,13 @@ use App\Livewire\Ticket\Index;
 use App\Livewire\Ticket\Show;
 use App\Http\Controllers\TrixAttachmentController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ErpSsoLoginController;
 
 Route::redirect('/', '/login')->name('home');
+
+Route::get('/erp/sso/login/{token}', ErpSsoLoginController::class)
+    ->middleware('guest')
+    ->name('erp.sso.login');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('dashboard', Dashboard::class)->name('dashboard');
