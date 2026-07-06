@@ -7,10 +7,13 @@ use App\Support\ActivityLogger;
 use Flux\Flux;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 #[Title('Departemen')]
 class Departments extends Component
 {
+    use WithPagination;
+
     public ?int $editId = null;
 
     public string $name = '';
@@ -18,6 +21,8 @@ class Departments extends Component
     public string $description = '';
 
     public bool $showForm = false;
+
+    public int $perPage = 10;
 
     protected function rules(): array
     {
@@ -133,8 +138,11 @@ class Departments extends Component
 
     public function render()
     {
+        $departments = Department::orderBy('name')->paginate($this->perPage);
+        $totalDepartments = Department::count();
         return view('livewire.settings.departments', [
-            'departments' => Department::orderBy('name')->get(),
+            'departments' => $departments,
+            'totalDepartments' => $totalDepartments,
         ]);
     }
 }

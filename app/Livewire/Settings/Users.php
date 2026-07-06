@@ -11,10 +11,13 @@ use Illuminate\Validation\Rule;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Spatie\Permission\Models\Role;
+use Livewire\WithPagination;
 
 #[Title('Pengguna')]
 class Users extends Component
 {
+    use WithPagination;
+    
     public ?int $editId = null;
 
     public string $name = '';
@@ -32,6 +35,8 @@ class Users extends Component
     public bool $is_active = true;
 
     public bool $showForm = false;
+
+    public int $perPage = 10;
 
     protected function rules(): array
     {
@@ -175,8 +180,19 @@ class Users extends Component
 
     public function render()
     {
+        $users = User::with(['roles', 'department'])
+            ->orderBy('name')
+            ->paginate($this->perPage);
+
+        $statusCounts = User::selectRaw('is_active, COUNT(*) as total')
+            ->groupBy('is_active')
+            ->pluck('total', 'is_active');
+
         return view('livewire.settings.users', [
-            'users' => User::with('roles', 'department')->orderBy('name')->get(),
+            'users' => $users,
+            'totalUsers' => $users->total(),
+            'activeUsers' => $statusCounts[1] ?? 0,
+            'inactiveUsers' => $statusCounts[0] ?? 0,
             'departments' => Department::orderBy('name')->pluck('name', 'id'),
             'roles' => Role::orderBy('name')->pluck('name'),
         ]);

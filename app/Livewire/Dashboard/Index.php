@@ -58,21 +58,29 @@ class Index extends Component
             $this->scopePeriod($q);
         }])->get();
 
-        $myTickets = Ticket::whereHas('activeAssignment', fn($q) => $q->where('assigned_to', Auth::id()))
+        $myTickets = $this->scopePeriod(
+            Ticket::query()->whereHas('activeAssignment', fn($q) => $q->where('assigned_to', Auth::id()))
+        )
             ->whereIn('status', ['OPEN', 'IN_PROGRESS'])
             ->with(['requester', 'department', 'category'])
             ->latest()
+            ->limit(8)
             ->get();
 
-        $needsAction = Ticket::whereIn('status', ['OPEN', 'IN_PROGRESS'])
-            ->where('priority', 'URGENT')
+        $needsAction = $this->scopePeriod(
+            Ticket::query()->whereIn('status', ['OPEN', 'IN_PROGRESS'])->where('priority', 'URGENT')
+        )
             ->with(['requester', 'department', 'category', 'activeAssignment.assignedTo'])
             ->latest()
+            ->limit(6)
             ->get();
 
-        $recentTickets = Ticket::with(['requester', 'department', 'category'])
+        $recentTickets = $this->scopePeriod(
+            Ticket::query()
+        )
+            ->with(['requester', 'department', 'category'])
             ->latest()
-            ->take(10)
+            ->limit(10)
             ->get();
 
         return view('livewire.dashboard.index', [

@@ -7,10 +7,13 @@ use App\Support\ActivityLogger;
 use Flux\Flux;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 #[Title('Kategori Ticket')]
 class TicketCategories extends Component
 {
+    use WithPagination;
+
     public ?int $editId = null;
 
     public string $name = '';
@@ -18,6 +21,8 @@ class TicketCategories extends Component
     public string $description = '';
 
     public bool $showForm = false;
+
+    public int $perPage = 10;
 
     protected function rules(): array
     {
@@ -88,6 +93,7 @@ class TicketCategories extends Component
         }
 
         $this->resetForm();
+        $this->resetPage();
     }
 
     public function confirmDelete(int $id): void
@@ -133,8 +139,11 @@ class TicketCategories extends Component
 
     public function render()
     {
+        $categories = TicketCategory::orderBy('name')->paginate($this->perPage);
+        $totalCategories = TicketCategory::count();
         return view('livewire.settings.ticket-categories', [
-            'categories' => TicketCategory::orderBy('name')->get(),
+            'categories' => $categories,
+            'totalCategories' => $totalCategories,
         ]);
     }
 }
