@@ -106,18 +106,6 @@
                                 placeholder="{{ __('Jelaskan masalah secara detail...') }}"
                             />
 
-                            <div class="rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-600 dark:border-zinc-800 dark:bg-zinc-950/50 dark:text-zinc-400">
-                                <p class="font-medium text-zinc-700 dark:text-zinc-300">
-                                    {{ __('Agar tiket lebih mudah diproses, jelaskan:') }}
-                                </p>
-                                <ul class="mt-2 list-disc space-y-1 pl-5">
-                                    <li>{{ __('Apa yang terjadi?') }}</li>
-                                    <li>{{ __('Kapan masalah mulai muncul?') }}</li>
-                                    <li>{{ __('Aplikasi / perangkat apa yang bermasalah?') }}</li>
-                                    <li>{{ __('Langkah apa yang sudah dicoba?') }}</li>
-                                    <li>{{ __('Sertakan pesan error jika ada.') }}</li>
-                                </ul>
-                            </div>
                         </div>
 
                         <flux:error name="description" />

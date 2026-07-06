@@ -7,7 +7,7 @@
 <div
     wire:ignore
     x-data="{
-        value: @entangle($attributes->wire('model')).live,
+        value: @entangle($attributes->wire('model')),
 
         init() {
             this.$nextTick(() => {
