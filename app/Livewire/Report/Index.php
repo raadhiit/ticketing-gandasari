@@ -7,14 +7,19 @@ use App\Enums\TicketStatus;
 use App\Exports\TicketReportExport;
 use App\Models\Department;
 use App\Models\Ticket;
+use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Livewire\WithPagination;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Carbon\Carbon;
 
 #[Title('Laporan')]
 class Index extends Component
 {
+    use WithPagination;
+
     public string $startDate = '';
 
     public string $endDate = '';
@@ -27,19 +32,50 @@ class Index extends Component
 
     public ?int $exportTotal = null;
 
+    public int $perPage = 10;
+
     public function mount(): void
     {
+        $this->startDate = Carbon::now()->subDays(30)->format('Y-m-d');
+        $this->endDate = Carbon::now()->format('Y-m-d');
+
         if (! auth()->user()->can('report.view')) {
             $this->redirect(route('tickets.index'), navigate: true);
         }
     }
 
+    public function updatedStartDate(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedEndDate(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedStatus(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedDepartmentId(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedPriority(): void
+    {
+        $this->resetPage();
+    }
+
     public function resetFilters(): void
     {
         $this->reset(['startDate', 'endDate', 'status', 'departmentId', 'priority']);
+        $this->resetPage();
     }
 
-    private function applyFilters($query)
+    private function applyFilters(Builder $query): Builder
     {
         return $query
             ->when($this->startDate, fn($q) => $q->whereDate('created_at', '>=', $this->startDate))
@@ -51,28 +87,30 @@ class Index extends Component
 
     public function render()
     {
-        $base = Ticket::query();
-        $filtered = $this->applyFilters(clone $base);
+        $filtered = $this->applyFilters(Ticket::query());
 
-        $stats = [
-            'total' => (clone $filtered)->count(),
-            'open' => (clone $filtered)->where('status', 'OPEN')->count(),
-            'in_progress' => (clone $filtered)->where('status', 'IN_PROGRESS')->count(),
-            'resolved' => (clone $filtered)->where('status', 'RESOLVED')->count(),
-            'closed' => (clone $filtered)->where('status', 'CLOSED')->count(),
-        ];
+        $statusCounts = (clone $filtered)
+            ->selectRaw('status, COUNT(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
 
         $tickets = (clone $filtered)
             ->with(['requester', 'department', 'category', 'activeAssignment.assignedTo'])
             ->latest()
-            ->get();
+            ->paginate($this->perPage);
 
-        $departments = Department::orderBy('name')->pluck('name', 'id');
+        $stats = [
+            'total' => $tickets->total(),
+            'open' => $statusCounts['OPEN'] ?? 0,
+            'in_progress' => $statusCounts['IN_PROGRESS'] ?? 0,
+            'resolved' => $statusCounts['RESOLVED'] ?? 0,
+            'closed' => $statusCounts['CLOSED'] ?? 0,
+        ];
 
         return view('livewire.report.index', [
             'stats' => $stats,
             'tickets' => $tickets,
-            'departments' => $departments,
+            'departments' => Department::orderBy('name')->pluck('name', 'id'),
             'statuses' => TicketStatus::cases(),
             'priorities' => TicketPriority::cases(),
         ]);
@@ -81,29 +119,51 @@ class Index extends Component
     public function confirmExport(): void
     {
         if (empty($this->startDate) || empty($this->endDate)) {
-            $this->dispatch('toast-show', slots: ['heading' => __('Perhatian'), 'text' => __('Pilih rentang tanggal terlebih dahulu')], dataset: ['variant' => 'warning']);
+            $this->dispatch(
+                'toast-show',
+                slots: [
+                    'heading' => __('Perhatian'),
+                    'text' => __('Pilih rentang tanggal terlebih dahulu'),
+                ],
+                dataset: ['variant' => 'warning']
+            );
 
             return;
         }
 
-        $base = Ticket::query();
-        $filtered = $this->applyFilters(clone $base);
+        $filtered = $this->applyFilters(Ticket::query());
+
         $this->exportTotal = (clone $filtered)->count();
 
         if ($this->exportTotal === 0) {
-            $this->dispatch('toast-show', slots: ['heading' => __('Data Kosong'), 'text' => __('Tidak ada data untuk diexport')], dataset: ['variant' => 'info']);
+            $this->dispatch(
+                'toast-show',
+                slots: [
+                    'heading' => __('Data Kosong'),
+                    'text' => __('Tidak ada data untuk diexport'),
+                ],
+                dataset: ['variant' => 'info']
+            );
 
             return;
         }
 
-        $this->dispatch('confirm-open', name: 'confirm-export', title: __('Export Data'), message: __('Yakin ingin mengexport :count data ticket?', ['count' => $this->exportTotal]), method: 'exportXlsx', variant: 'primary', confirmLabel: __('Ya'));
+        $this->dispatch(
+            'confirm-open',
+            name: 'confirm-export',
+            title: __('Export Data'),
+            message: __('Yakin ingin mengexport :count data ticket?', ['count' => $this->exportTotal]),
+            method: 'exportXlsx',
+            variant: 'primary',
+            confirmLabel: __('Ya')
+        );
+
         $this->dispatch('modal-show', name: 'confirm-export');
     }
 
     public function exportXlsx(): BinaryFileResponse
     {
-        $base = Ticket::query();
-        $filtered = $this->applyFilters(clone $base);
+        $filtered = $this->applyFilters(Ticket::query());
 
         $tickets = (clone $filtered)
             ->with(['requester', 'department', 'category', 'activeAssignment.assignedTo'])
@@ -111,7 +171,11 @@ class Index extends Component
             ->get();
 
         return Excel::download(
-            new TicketReportExport($tickets),
+            new TicketReportExport(
+                $tickets,
+                $this->startDate ?: null,
+                $this->endDate ?: null,
+            ),
             'laporan-ticket-' . now()->format('Ymd-His') . '.xlsx',
         );
     }
