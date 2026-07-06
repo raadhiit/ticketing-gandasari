@@ -394,224 +394,383 @@
 
         {{-- Right Sidebar --}}
         <div class="space-y-5 xl:sticky xl:top-5 xl:self-start">
-            {{-- Ticket Summary --}}
-            <flux:card
-                class="relative overflow-hidden border border-zinc-200 bg-white p-5 pl-6 shadow-card dark:border-zinc-700/50 dark:bg-zinc-900">
-                <span class="absolute inset-y-0 left-0 w-1 {{ $sidebarAccentBar }}"></span>
+            {{-- Ringkasan Ticket --}}
+            <div
+                class="overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+                <div class="border-b border-zinc-100 px-5 py-5 dark:border-zinc-800">
+                    <div class="flex items-start justify-between gap-4">
+                        <div>
+                            <h2 class="text-lg font-semibold text-zinc-900 dark:text-white">
+                                {{ __('Ringkasan Ticket') }}
+                            </h2>
+                            <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                                {{ __('Informasi utama ticket') }}
+                            </p>
+                        </div>
 
-                <h2 class="mb-4 text-sm font-semibold text-zinc-900 dark:text-white">
-                    {{ __('Informasi Ticket') }}
-                </h2>
-
-                <div class="space-y-3 text-sm">
-                    <div class="grid grid-cols-[115px_minmax(0,1fr)] items-start gap-2">
-                        <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                            {{ __('Status') }}
-                        </p>
-
-                        <div class="min-w-0">
+                        <div class="flex flex-wrap justify-end gap-2">
                             <span
-                                class="inline-flex items-center rounded-full px-3 py-1 text-xs font-bold ring-1 ring-inset {{ $statusNoticeClasses }}">
+                                class="inline-flex items-center rounded-xl px-3 py-1 text-xs font-bold ring-1 ring-inset {{ $statusNoticeClasses }}">
                                 {{ str_replace('_', ' ', $ticket->status) }}
                             </span>
-                        </div>
-                    </div>
 
-                    <div class="grid grid-cols-[115px_minmax(0,1fr)] items-start gap-2">
-                        <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                            {{ __('Ditangani') }}
-                        </p>
-
-                        <p class="min-w-0 font-medium text-zinc-900 dark:text-white">
-                            {{ $currentAssignment?->assignedTo?->name ?? __('Belum ditugaskan') }}
-                        </p>
-                    </div>
-
-                    <div class="grid grid-cols-[115px_minmax(0,1fr)] items-start gap-2">
-                        <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                            {{ __('Pelapor') }}
-                        </p>
-
-                        <p class="min-w-0 font-medium text-zinc-900 dark:text-white">
-                            {{ $requesterName }}
-                        </p>
-                    </div>
-
-                    <div class="grid grid-cols-[115px_minmax(0,1fr)] items-start gap-2">
-                        <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                            {{ __('Prioritas') }}
-                        </p>
-
-                        <div class="min-w-0">
                             <span
-                                class="inline-flex items-center rounded-full px-3 py-1 text-xs font-bold ring-1 ring-inset {{ $priorityClasses }}">
+                                class="inline-flex items-center rounded-xl px-3 py-1 text-xs font-bold ring-1 ring-inset {{ $priorityClasses }}">
                                 {{ $ticket->priority }}
                             </span>
                         </div>
                     </div>
+                </div>
 
-                    <div class="grid grid-cols-[115px_minmax(0,1fr)] items-start gap-2">
-                        <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                            {{ __('Departemen') }}
-                        </p>
+                <div class="space-y-4 p-5">
+                    <div class="flex items-start gap-3">
+                        <div
+                            class="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-xl bg-zinc-50 text-zinc-500 ring-1 ring-inset ring-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:ring-zinc-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="size-4.5" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M15.75 7.5a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.5 20.25a7.5 7.5 0 0 1 15 0" />
+                            </svg>
+                        </div>
 
-                        <p class="min-w-0 font-medium text-zinc-900 dark:text-white">
-                            {{ $ticket->department?->name ?? '-' }}
-                        </p>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                                {{ __('Ditangani oleh') }}
+                            </p>
+                            <p class="mt-1 truncate text-sm font-semibold text-zinc-900 dark:text-white">
+                                {{ $currentAssignment?->assignedTo?->name ?? __('Belum ditugaskan') }}
+                            </p>
+                        </div>
                     </div>
 
-                    <div class="grid grid-cols-[115px_minmax(0,1fr)] items-start gap-2">
-                        <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                            {{ __('Kategori') }}
-                        </p>
+                    <div class="flex items-start gap-3">
+                        <div
+                            class="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-xl bg-zinc-50 text-zinc-500 ring-1 ring-inset ring-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:ring-zinc-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="size-4.5" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                            </svg>
+                        </div>
 
-                        <p class="min-w-0 font-medium text-zinc-900 dark:text-white">
-                            {{ $ticket->category?->name ?? '-' }}
-                        </p>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                                {{ __('Pelapor') }}
+                            </p>
+                            <p class="mt-1 truncate text-sm font-semibold text-zinc-900 dark:text-white">
+                                {{ $requesterName }}
+                            </p>
+                        </div>
                     </div>
 
-                    <div class="grid grid-cols-[115px_minmax(0,1fr)] items-start gap-2">
-                        <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                            {{ __('Dibuat') }}
-                        </p>
+                    <div class="flex items-start gap-3">
+                        <div
+                            class="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-xl bg-zinc-50 text-zinc-500 ring-1 ring-inset ring-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:ring-zinc-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="size-4.5" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M3.75 21h16.5M4.5 3h15m-13.5 0v18m11.5-18v18M8.25 7.5h7.5m-7.5 4.5h7.5m-7.5 4.5h7.5" />
+                            </svg>
+                        </div>
 
-                        <p class="min-w-0 font-medium text-zinc-900 dark:text-white">
-                            {{ $ticket->created_at->format('d M Y H:i') }}
-                        </p>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                                {{ __('Departemen') }}
+                            </p>
+                            <p class="mt-1 truncate text-sm font-semibold text-zinc-900 dark:text-white">
+                                {{ $ticket->department?->name ?? '-' }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3">
+                        <div
+                            class="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-xl bg-zinc-50 text-zinc-500 ring-1 ring-inset ring-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:ring-zinc-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="size-4.5" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M5.25 7.5 12 3.75 18.75 7.5 12 11.25 5.25 7.5Z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 12 12 15.75 18.75 12" />
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M5.25 16.5 12 20.25 18.75 16.5" />
+                            </svg>
+                        </div>
+
+                        <div class="min-w-0 flex-1">
+                            <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                                {{ __('Kategori') }}
+                            </p>
+                            <p class="mt-1 text-sm font-semibold text-zinc-900 dark:text-white">
+                                {{ $ticket->category?->name ?? '-' }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3">
+                        <div
+                            class="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-xl bg-zinc-50 text-zinc-500 ring-1 ring-inset ring-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:ring-zinc-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="size-4.5" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z" />
+                            </svg>
+                        </div>
+
+                        <div class="min-w-0 flex-1">
+                            <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                                {{ __('Dibuat') }}
+                            </p>
+                            <p class="mt-1 text-sm font-semibold text-zinc-900 dark:text-white">
+                                {{ $ticket->created_at->format('d M Y H:i') }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
+                        <div
+                            class="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 dark:border-blue-500/20 dark:bg-blue-500/10">
+                            <div class="flex items-center gap-2">
+                                <div
+                                    class="flex size-8 items-center justify-center rounded-xl bg-white text-blue-600 dark:bg-blue-500/10 dark:text-blue-300">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="size-4.5" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M12 6v6l4 2m6-2a10 10 0 1 1-20 0 10 10 0 0 1 20 0Z" />
+                                    </svg>
+                                </div>
+
+                                <div>
+                                    <p class="text-xs font-semibold text-blue-700 dark:text-blue-300">
+                                        {{ __('Umur Ticket') }}
+                                    </p>
+                                    <p class="mt-0.5 text-sm font-bold text-zinc-900 dark:text-white">
+                                        {{ $ticket->created_at->diffForHumans(null, true) }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div
+                            class="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 dark:border-blue-500/20 dark:bg-blue-500/10">
+                            <div class="flex items-center gap-2">
+                                <div
+                                    class="flex size-8 items-center justify-center rounded-xl bg-white text-blue-600 dark:bg-blue-500/10 dark:text-blue-300">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="size-4.5" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182" />
+                                    </svg>
+                                </div>
+
+                                <div>
+                                    <p class="text-xs font-semibold text-blue-700 dark:text-blue-300">
+                                        {{ __('Update Terakhir') }}
+                                    </p>
+                                    <p class="mt-0.5 text-sm font-bold text-zinc-900 dark:text-white">
+                                        {{ $ticket->updated_at->format('d M H:i') }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </flux:card>
+            </div>
 
-            {{-- Assign --}}
+            {{-- Penanggung Jawab --}}
             @can('assign', $ticket)
-                <flux:card id="assign-panel" class="p-5 dark:bg-zinc-900 dark:border-zinc-700/50 shadow-card">
-                    <h2 class="mb-4 text-sm font-semibold text-zinc-900 dark:text-white">
-                        {{ __('Tugaskan Ticket') }}
-                    </h2>
+                <div id="assign-panel"
+                    class="overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+                    <div class="border-b border-zinc-100 px-5 py-5 dark:border-zinc-800">
+                        <h2 class="text-lg font-semibold text-zinc-900 dark:text-white">
+                            {{ __('Penanggung Jawab') }}
+                        </h2>
+                        <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                            {{ $currentAssignment ? __('Ticket saat ini sudah ditangani agent.') : __('Ticket belum ditugaskan ke agent.') }}
+                        </p>
+                    </div>
 
-                    <form wire:submit="assign" class="space-y-3">
-                        <flux:field>
-                            <flux:select wire:model="assignedUserId"
-                                class="dark:bg-zinc-800 dark:border-zinc-700 dark:text-white">
-                                <option value="">{{ __('Pilih agent...') }}</option>
+                    <div class="space-y-4 p-5">
+                        <div @class([
+                            'rounded-2xl border px-4 py-3',
+                            'border-emerald-200 bg-emerald-50 dark:border-emerald-500/20 dark:bg-emerald-500/10' => $currentAssignment,
+                            'border-amber-200 bg-amber-50 dark:border-amber-500/20 dark:bg-amber-500/10' => !$currentAssignment,
+                        ])>
+                            <div class="flex items-center gap-3">
+                                <div @class([
+                                    'flex size-9 shrink-0 items-center justify-center rounded-xl',
+                                    'bg-white text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300' => $currentAssignment,
+                                    'bg-white text-amber-600 dark:bg-amber-500/10 dark:text-amber-300' => !$currentAssignment,
+                                ])>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="size-4.5" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M15.75 7.5a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.5 20.25a7.5 7.5 0 0 1 15 0" />
+                                    </svg>
+                                </div>
 
-                                @foreach ($agents as $agent)
-                                    <option value="{{ $agent->id }}">
-                                        {{ $agent->name }} ({{ $agent->department?->name ?? '-' }})
-                                    </option>
-                                @endforeach
-                            </flux:select>
+                                <div class="min-w-0">
+                                    <p @class([
+                                        'text-xs font-semibold uppercase tracking-wide',
+                                        'text-emerald-700 dark:text-emerald-300' => $currentAssignment,
+                                        'text-amber-700 dark:text-amber-300' => !$currentAssignment,
+                                    ])>
+                                        {{ __('Agent Saat Ini') }}
+                                    </p>
+                                    <p class="mt-0.5 truncate text-sm font-bold text-zinc-900 dark:text-white">
+                                        {{ $currentAssignment?->assignedTo?->name ?? __('Belum ditugaskan') }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
 
-                            <flux:error name="assignedUserId" />
-                        </flux:field>
+                        <form wire:submit="assign" class="space-y-3">
+                            <flux:field>
+                                <flux:select wire:model="assignedUserId"
+                                    class="h-12 rounded-2xl dark:bg-zinc-950 dark:border-zinc-700/50 dark:text-white">
+                                    <option value="">{{ __('Pilih agent...') }}</option>
 
-                        <flux:button type="submit" variant="primary" class="w-full">
-                            {{ __('Assign') }}
-                        </flux:button>
-                    </form>
-                </flux:card>
+                                    @foreach ($agents as $agent)
+                                        <option value="{{ $agent->id }}">
+                                            {{ $agent->name }} ({{ $agent->department?->name ?? '-' }})
+                                        </option>
+                                    @endforeach
+                                </flux:select>
+
+                                <flux:error name="assignedUserId" />
+                            </flux:field>
+
+                            <flux:button type="submit" variant="primary" class="w-full rounded-2xl">
+                                {{ $currentAssignment ? __('Ubah Agent') : __('Tugaskan Ticket') }}
+                            </flux:button>
+                        </form>
+                    </div>
+                </div>
             @endcan
 
-            {{-- Riwayat --}}
-            <flux:card
-                class="relative overflow-hidden p-5 pl-6 border border-zinc-200 bg-white shadow-card dark:border-zinc-700/50 dark:bg-zinc-900">
-                <span aria-hidden="true"
-                    class="absolute inset-y-0 left-0 w-1 bg-amber-500 dark:bg-amber-400"></span>
-
-                <div class="mb-4 flex items-center justify-between gap-3">
-                    <h2 class="text-sm font-semibold text-zinc-900 dark:text-white">
-                        {{ __('Aktivitas Ticket') }}
-                    </h2>
+            {{-- Riwayat Ticket --}}
+            <div
+                class="overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+                <div
+                    class="flex items-start justify-between gap-3 border-b border-zinc-100 px-5 py-5 dark:border-zinc-800">
+                    <div>
+                        <h2 class="text-lg font-semibold text-zinc-900 dark:text-white">
+                            {{ __('Riwayat Ticket') }}
+                        </h2>
+                        <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                            {{ __('Aktivitas terbaru terkait ticket ini') }}
+                        </p>
+                    </div>
 
                     @if ($histories->isNotEmpty())
                         <span
-                            class="rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-700 ring-1 ring-inset ring-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:ring-amber-500/30">
+                            class="shrink-0 rounded-xl bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 ring-1 ring-inset ring-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:ring-amber-500/20">
                             {{ __('Update terbaru') }}
                         </span>
                     @endif
                 </div>
 
-                <div class="space-y-3">
-                    @forelse ($histories as $history)
-                        @php
-                            $isLatest = $history->id === $latestHistoryId;
+                <div class="max-h-[460px] overflow-y-auto p-5">
+                    <div class="relative space-y-5 border-l border-zinc-200 pl-5 dark:border-zinc-800">
+                        @forelse ($histories as $history)
+                            @php
+                                $isLatest = $history->id === $latestHistoryId;
 
-                            $actionLabel = match ($history->action) {
-                                'created' => 'Ticket dibuat',
-                                'updated' => 'Ticket diperbarui',
-                                'assigned' => 'Ticket ditugaskan',
-                                'status_changed' => 'Status diubah',
-                                'comment_added' => 'Balasan ditambahkan',
-                                'closed' => 'Ticket ditutup',
-                                'reopened' => 'Ticket dibuka kembali',
-                                default => ucfirst(str_replace('_', ' ', $history->action)),
-                            };
-                        @endphp
+                                $actionLabel = match ($history->action) {
+                                    'created' => 'Ticket dibuat',
+                                    'updated' => 'Ticket diperbarui',
+                                    'assigned' => 'Ticket ditugaskan',
+                                    'status_changed' => 'Status diubah',
+                                    'comment_added' => 'Balasan ditambahkan',
+                                    'closed' => 'Ticket ditutup',
+                                    'reopened' => 'Ticket dibuka kembali',
+                                    default => ucfirst(str_replace('_', ' ', $history->action)),
+                                };
 
-                        <div @class([
-                            'relative text-sm transition',
-                            'rounded-xl border border-amber-200 bg-amber-50/80 p-3 shadow-sm dark:border-amber-500/30 dark:bg-amber-500/10' => $isLatest,
-                            'border-l-2 border-zinc-200 pl-3 dark:border-zinc-700' => !$isLatest,
-                        ])>
-                            @if ($isLatest)
-                                <div class="mb-2 flex items-center justify-between gap-2">
-                                    <span
-                                        class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-amber-700 ring-1 ring-inset ring-amber-200 dark:bg-amber-500/20 dark:text-amber-200 dark:ring-amber-400/30">
-                                        {{ __('Terbaru') }}
-                                    </span>
+                                $dotClass = match ($history->action) {
+                                    'created' => 'bg-blue-500',
+                                    'assigned' => 'bg-emerald-500',
+                                    'status_changed' => 'bg-amber-500',
+                                    'closed' => 'bg-rose-500',
+                                    'reopened' => 'bg-sky-500',
+                                    default => 'bg-zinc-400',
+                                };
+                            @endphp
 
-                                    <span class="text-xs text-amber-700/80 dark:text-amber-300/80">
-                                        {{ $history->created_at->format('d M H:i') }}
-                                    </span>
+                            <div class="relative">
+                                <span @class([
+                                    'absolute -left-[29px] top-1.5 flex size-4 rounded-full border-2 border-white dark:border-zinc-900',
+                                    'bg-amber-500' => $isLatest,
+                                    $dotClass => !$isLatest,
+                                ])></span>
+
+                                <div @class([
+                                    'rounded-2xl border p-4 transition',
+                                    'border-amber-200 bg-amber-50/80 shadow-sm dark:border-amber-500/20 dark:bg-amber-500/10' => $isLatest,
+                                    'border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950/50' => !$isLatest,
+                                ])>
+                                    <div class="flex items-start justify-between gap-3">
+                                        <div class="min-w-0">
+                                            <div class="flex flex-wrap items-center gap-2">
+                                                <p @class([
+                                                    'text-sm font-semibold',
+                                                    'text-amber-950 dark:text-amber-100' => $isLatest,
+                                                    'text-zinc-900 dark:text-white' => !$isLatest,
+                                                ])>
+                                                    {{ $history->performedBy?->name ?? __('System') }}
+                                                </p>
+
+                                                @if ($isLatest)
+                                                    <span
+                                                        class="rounded-xl bg-amber-100 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-amber-700 ring-1 ring-inset ring-amber-200 dark:bg-amber-500/20 dark:text-amber-200 dark:ring-amber-400/30">
+                                                        {{ __('Terbaru') }}
+                                                    </span>
+                                                @endif
+                                            </div>
+
+                                            <p @class([
+                                                'mt-1 text-sm',
+                                                'text-amber-800 dark:text-amber-200/90' => $isLatest,
+                                                'text-zinc-600 dark:text-zinc-400' => !$isLatest,
+                                            ])>
+                                                {{ $actionLabel }}
+
+                                                @if ($history->old_value && $history->new_value)
+                                                    :
+                                                    <span class="font-semibold">
+                                                        {{ $history->old_value }}
+                                                    </span>
+                                                    →
+                                                    <span class="font-semibold">
+                                                        {{ $history->new_value }}
+                                                    </span>
+                                                @endif
+                                            </p>
+                                        </div>
+
+                                        <span @class([
+                                            'shrink-0 text-xs',
+                                            'text-amber-700/80 dark:text-amber-300/80' => $isLatest,
+                                            'text-zinc-500 dark:text-zinc-500' => !$isLatest,
+                                        ])>
+                                            {{ $history->created_at->format('d M H:i') }}
+                                        </span>
+                                    </div>
                                 </div>
-                            @else
-                                <div class="text-xs text-zinc-500 dark:text-zinc-500">
-                                    {{ $history->created_at->format('d M H:i') }}
-                                </div>
-                            @endif
-
-                            <div @class([
-                                'font-medium',
-                                'text-amber-950 dark:text-amber-100' => $isLatest,
-                                'text-zinc-900 dark:text-zinc-100' => !$isLatest,
-                            ])>
-                                {{ $history->performedBy?->name ?? '-' }}
                             </div>
-
-                            <div @class([
-                                'text-xs',
-                                'mt-1 text-amber-800 dark:text-amber-200/90' => $isLatest,
-                                'text-zinc-500 dark:text-zinc-400' => !$isLatest,
-                            ])>
-                                {{ $actionLabel }}
-
-                                @if ($history->old_value && $history->new_value)
-                                    :
-                                    <span @class([
-                                        'font-medium',
-                                        'text-amber-900 dark:text-amber-100' => $isLatest,
-                                        'text-zinc-700 dark:text-zinc-300' => !$isLatest,
-                                    ])>
-                                        {{ $history->old_value }}
-                                    </span>
-                                    →
-                                    <span @class([
-                                        'font-medium',
-                                        'text-amber-900 dark:text-amber-100' => $isLatest,
-                                        'text-zinc-700 dark:text-zinc-300' => !$isLatest,
-                                    ])>
-                                        {{ $history->new_value }}
-                                    </span>
-                                @endif
+                        @empty
+                            <div
+                                class="rounded-2xl border border-dashed border-zinc-300 px-4 py-8 text-center dark:border-zinc-700">
+                                <p class="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                                    {{ __('Belum ada riwayat') }}
+                                </p>
+                                <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                                    {{ __('Aktivitas ticket akan muncul di sini.') }}
+                                </p>
                             </div>
-                        </div>
-                    @empty
-                        <p class="text-sm text-zinc-500 dark:text-zinc-400">
-                            {{ __('Belum ada aktivitas') }}
-                        </p>
-                    @endforelse
+                        @endforelse
+                    </div>
                 </div>
-            </flux:card>
+            </div>
         </div>
     </div>
     {{-- Attachment Preview Modal --}}

@@ -219,7 +219,11 @@ class Show extends Component
 
     public function render()
     {
-        $agents = User::role('IT ERP')->with('department')->get();
+        $agents = User::role('IT ERP')
+            ->where('is_active', true)
+            ->with('department')
+            ->orderBy('name')
+            ->get();
 
         $comments = $this->ticket->comments()
             ->with('user')
@@ -236,6 +240,7 @@ class Show extends Component
         $histories = $this->ticket->histories()
             ->with('performedBy')
             ->latest()
+            ->limit(10)
             ->get();
 
         $latestHistoryId = $histories->first()?->id;

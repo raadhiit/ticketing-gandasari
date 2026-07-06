@@ -114,6 +114,7 @@
             wire:navigate
             icon="plus"
             class="h-11 rounded-2xl px-5 shadow-sm"
+            variant="primary"
         >
             {{ __('Buat Ticket') }}
         </flux:button>

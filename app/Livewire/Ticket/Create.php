@@ -7,12 +7,12 @@ use App\Actions\Ticket\UploadAttachmentAction;
 use App\Models\Department;
 use App\Models\Ticket;
 use App\Models\TicketCategory;
+use App\Support\CleanHtml;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithFileUploads;
-use App\Support\CleanHtml;
 
 #[Title('Buat Ticket Baru')]
 class Create extends Component
@@ -37,14 +37,16 @@ class Create extends Component
 
     public function mount(): void
     {
-        $this->requester_name = Auth::user()?->name ?? '';
+        $user = Auth::user();
+
+        $this->requester_name = $user?->name ?? '';
+        $this->department_id = $user?->department_id;
     }
 
     public function rules(): array
     {
         return [
             'title' => ['required', 'min:5', 'max:200'],
-            // 'description' => ['required'],
             'description' => [
                 'required',
                 function (string $attribute, mixed $value, \Closure $fail) {
@@ -80,9 +82,7 @@ class Create extends Component
 
             $this->validate();
 
-            $action = app(CreateTicketAction::class);
-
-            $ticket = $action->execute([
+            $ticket = app(CreateTicketAction::class)->execute([
                 'requester_id' => Auth::id(),
                 'requester_name' => $this->requester_name,
                 'department_id' => $this->department_id,
@@ -107,8 +107,8 @@ class Create extends Component
     public function render()
     {
         return view('livewire.ticket.create', [
-            'departments' => Department::pluck('name', 'id'),
-            'categories' => TicketCategory::pluck('name', 'id'),
+            'departments' => Department::orderBy('name')->pluck('name', 'id'),
+            'categories' => TicketCategory::orderBy('name')->pluck('name', 'id'),
         ]);
     }
 }
