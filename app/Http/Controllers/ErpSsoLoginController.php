@@ -33,6 +33,6 @@ class ErpSsoLoginController extends Controller
 
         request()->session()->regenerate();
 
-        return redirect()->route('tickets.index');
+        return redirect()->route('tickets.create');
     }
 }
