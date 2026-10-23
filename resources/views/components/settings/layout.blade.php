@@ -1,26 +1,22 @@
-<div class="flex items-start max-md:flex-col">
-    <div class="me-10 w-full pb-4 md:w-[220px]">
-        <flux:navlist aria-label="{{ __('Settings') }}">
-            <flux:navlist.item :href="route('profile.edit')" wire:navigate>{{ __('Profile') }}</flux:navlist.item>
-            <flux:navlist.item :href="route('security.edit')" wire:navigate>{{ __('Security') }}</flux:navlist.item>
-            {{-- <flux:navlist.item :href="route('appearance.edit')" wire:navigate>{{ __('Appearance') }}</flux:navlist.item> --}}
-
-            <flux:navlist.group :heading="__('Management')">
-                <flux:navlist.item :href="route('settings.departments')" wire:navigate>{{ __('Departemen') }}</flux:navlist.item>
-                <flux:navlist.item :href="route('settings.ticket-categories')" wire:navigate>{{ __('Kategori') }}</flux:navlist.item>
-                <flux:navlist.item :href="route('settings.users')" wire:navigate>{{ __('Pengguna') }}</flux:navlist.item>
-            </flux:navlist.group>
-        </flux:navlist>
-    </div>
-
-    <flux:separator class="md:hidden" />
-
-    <div class="flex-1 self-stretch max-md:pt-6">
-        <flux:heading>{{ $heading ?? '' }}</flux:heading>
-        <flux:subheading>{{ $subheading ?? '' }}</flux:subheading>
-
-        <div class="mt-5 w-full max-w-lg">
-            {{ $slot }}
+<div class="flex flex-wrap items-start gap-4">
+    <nav class="panel w-[220px] max-md:w-full" aria-label="{{ __('Settings') }}">
+        <div class="panel-strip">
+            <div class="panel-tab">{{ __('Pengaturan') }}</div>
         </div>
+
+        @foreach ([
+            ['route' => 'profile.edit', 'label' => __('Profil')],
+            ['route' => 'security.edit', 'label' => __('Keamanan')],
+        ] as $link)
+            <a href="{{ route($link['route']) }}" wire:navigate @class([
+                'block border-t border-line px-3 py-3 text-sm font-semibold no-underline',
+                'bg-thread text-ink-strong' => request()->routeIs($link['route']),
+                'text-link' => ! request()->routeIs($link['route']),
+            ])>{{ $link['label'] }}</a>
+        @endforeach
+    </nav>
+
+    <div class="flex min-w-0 flex-1 flex-col gap-3">
+        {{ $slot }}
     </div>
 </div>

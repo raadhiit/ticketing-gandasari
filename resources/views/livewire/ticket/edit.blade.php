@@ -1,78 +1,67 @@
-<div class="max-w-2xl mx-auto space-y-5">
-    <x-confirm-dialog name="confirm-edit" />
-    <div class="flex items-center gap-3">
-        <flux:button :href="route('tickets.index')" wire:navigate icon="arrow-left" variant="ghost" class="-ms-2 shrink-0">
-            {{ __('Back') }}</flux:button>
-        <div>
-            <h1 class="text-xl font-semibold tracking-tight text-zinc-900 dark:text-white">{{ __('Edit Ticket') }}</h1>
-            <p class="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">{{ $ticket->ticket_number }} —
-                {{ __('Perbarui detail ticket') }}</p>
-        </div>
-    </div>
+<div>
+    <form class="flex max-w-[1100px] flex-col gap-3" onsubmit="return false">
+        <x-panel :title="__('Edit Ticket')">
+            <div class="kv kv-form">
+                <div class="kv-k kv-first"><label for="judul">{{ __('Judul') }}</label><span class="text-required" aria-hidden="true">*</span></div>
+                <div class="kv-v kv-first kv-span3">
+                    <input id="judul" type="text" wire:model="title" class="inp" required
+                        placeholder="{{ __('Contoh: Email perusahaan tidak bisa dikirim') }}">
+                    <p class="hint">{{ $ticket->ticket_number }} — {{ __('Perbarui detail ticket') }}</p>
+                    @error('title')<p class="hint !text-danger">{{ $message }}</p>@enderror
+                </div>
 
-    <form class="space-y-5">
-        <flux:card
-            class="p-5 border-l-[3px] border-l-blue-500 dark:border-l-blue-400 dark:bg-zinc-900 dark:border-zinc-700/50 shadow-card space-y-5">
-            <flux:field>
-                <flux:label class="dark:text-zinc-300">{{ __('Judul') }}</flux:label>
-                <flux:input wire:model="title" placeholder="{{ __('Contoh: Email perusahaan tidak bisa dikirim') }}"
-                    class="dark:bg-zinc-800 dark:border-zinc-700 dark:text-white dark:placeholder-zinc-500" />
-                <flux:error name="title" />
-            </flux:field>
-
-            <flux:field>
-                <flux:label class="dark:text-zinc-300">{{ __('Deskripsi') }}</flux:label>
-                {{-- <flux:textarea wire:model="description" rows="5" placeholder="{{ __('Jelaskan masalah secara detail...') }}" class="dark:bg-zinc-800 dark:border-zinc-700 dark:text-white dark:placeholder-zinc-500" /> --}}
-                <x-trix-editor id="ticket-edit-description-editor" wire:model="description"
-                    placeholder="{{ __('Jelaskan masalah secara detail...') }}" />
-
-                <flux:error name="description" />
-            </flux:field>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <flux:field>
-                    <flux:label class="dark:text-zinc-300">{{ __('Departemen') }}</flux:label>
-                    <flux:select wire:model="department_id"
-                        class="dark:bg-zinc-800 dark:border-zinc-700 dark:text-white">
-                        <option value="">{{ __('Pilih departemen') }}</option>
-                        @foreach ($departments as $id => $name)
-                            <option value="{{ $id }}">{{ $name }}</option>
-                        @endforeach
-                    </flux:select>
-                    <flux:error name="department_id" />
-                </flux:field>
-
-                <flux:field>
-                    <flux:label class="dark:text-zinc-300">{{ __('Kategori') }}</flux:label>
-                    <flux:select wire:model="category_id" class="dark:bg-zinc-800 dark:border-zinc-700 dark:text-white">
+                <div class="kv-k"><label for="kat">{{ __('Kategori') }}</label></div>
+                <div class="kv-v">
+                    <select id="kat" wire:model="category_id" class="sel">
                         <option value="">{{ __('Pilih kategori') }}</option>
                         @foreach ($categories as $id => $name)
                             <option value="{{ $id }}">{{ $name }}</option>
                         @endforeach
-                    </flux:select>
-                    <flux:error name="category_id" />
-                </flux:field>
+                    </select>
+                    @error('category_id')<p class="hint !text-danger">{{ $message }}</p>@enderror
+                </div>
+                <div class="kv-k"><label for="pri">{{ __('Prioritas') }}</label><span class="text-required" aria-hidden="true">*</span></div>
+                <div class="kv-v">
+                    <select id="pri" wire:model="priority" class="sel">
+                        <option value="LOW">Low</option>
+                        <option value="MEDIUM">Medium</option>
+                        <option value="HIGH">High</option>
+                        <option value="URGENT">Urgent</option>
+                    </select>
+                    @error('priority')<p class="hint !text-danger">{{ $message }}</p>@enderror
+                </div>
+
+                <div class="kv-k"><label for="dep">{{ __('Departemen') }}</label></div>
+                <div class="kv-v kv-span3">
+                    <select id="dep" wire:model="department_id" class="sel">
+                        <option value="">{{ __('Pilih departemen') }}</option>
+                        @foreach ($departments as $id => $name)
+                            <option value="{{ $id }}">{{ $name }}</option>
+                        @endforeach
+                    </select>
+                    @error('department_id')<p class="hint !text-danger">{{ $message }}</p>@enderror
+                </div>
+            </div>
+        </x-panel>
+
+        <section class="panel" aria-label="{{ __('Deskripsi') }}">
+            <div class="panel-strip">
+                <div class="panel-tab">{{ __('Deskripsi') }}<span class="ml-1 text-[#ff9aa8]" aria-hidden="true">*</span></div>
             </div>
 
-            <flux:field>
-                <flux:label class="dark:text-zinc-300">{{ __('Prioritas') }}</flux:label>
-                <flux:select wire:model="priority" class="dark:bg-zinc-800 dark:border-zinc-700 dark:text-white">
-                    <option value="LOW">Low</option>
-                    <option value="MEDIUM">Medium</option>
-                    <option value="HIGH">High</option>
-                    <option value="URGENT">Urgent</option>
-                </flux:select>
-                <flux:error name="priority" />
-            </flux:field>
-        </flux:card>
+            <div class="editor-flat">
+                <x-trix-editor id="ticket-edit-description-editor" wire:model="description"
+                    placeholder="{{ __('Jelaskan masalah secara detail...') }}" />
+            </div>
 
-        <div class="flex gap-3">
-            <flux:button wire:click="confirmSave" variant="primary" wire:loading.attr="disabled">
-                {{ __('Simpan Perubahan') }}
-            </flux:button>
-            <flux:button :href="route('tickets.show', $ticket)" wire:navigate variant="ghost">
-                {{ __('Batal') }}
-            </flux:button>
+            @error('description')<p class="m-0 px-4 pb-3 text-[13px] text-danger">{{ $message }}</p>@enderror
+        </section>
+
+        <div class="flex justify-end gap-2.5 rounded-lg bg-white px-4 py-3.5">
+            <a href="{{ route('tickets.show', $ticket) }}" wire:navigate class="btn btn-n">{{ __('Batal') }}</a>
+            <button type="button" class="btn btn-p" wire:click="confirmSave" wire:loading.attr="disabled">{{ __('Simpan Perubahan') }}</button>
         </div>
     </form>
+
+    <x-confirm-dialog name="confirm-edit" />
 </div>

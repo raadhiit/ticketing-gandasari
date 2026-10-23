@@ -6,9 +6,9 @@ use App\Models\Department;
 use App\Models\Ticket;
 use App\Models\TicketCategory;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Title;
 use Livewire\Component;
-use Illuminate\Support\Facades\Auth;
 
 #[Title('Dashboard')]
 class Index extends Component
@@ -25,9 +25,11 @@ class Index extends Component
     private function scopePeriod(Builder $query): Builder
     {
         return $query
-            ->when($this->period === 'today', fn($q) => $q->whereDate('created_at', today()))
-            ->when($this->period === 'week', fn($q) => $q->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]))
-            ->when($this->period === 'month', fn($q) => $q->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year));
+            ->when($this->period === 'today', fn ($q) => $q->whereDate('created_at', today()))
+            ->when($this->period === 'week', fn ($q) => $q->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]))
+            ->when($this->period === 'month', fn ($q) => $q->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year))
+            ->when($this->period === '30d', fn ($q) => $q->where('created_at', '>=', now()->subDays(30)->startOfDay()))
+            ->when($this->period === 'year', fn ($q) => $q->whereYear('created_at', now()->year));
     }
 
     public function render()
@@ -59,7 +61,7 @@ class Index extends Component
         }])->get();
 
         $myTickets = $this->scopePeriod(
-            Ticket::query()->whereHas('activeAssignment', fn($q) => $q->where('assigned_to', Auth::id()))
+            Ticket::query()->whereHas('activeAssignment', fn ($q) => $q->where('assigned_to', Auth::id()))
         )
             ->whereIn('status', ['OPEN', 'IN_PROGRESS'])
             ->with(['requester', 'department', 'category'])

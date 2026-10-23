@@ -10,39 +10,75 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* =========================
+   Design Tokens (handoff: docs/handoff/README.md)
+   ========================= */
+
 @theme {
     --font-sans:
-        "Instrument Sans", ui-sans-serif, system-ui, sans-serif,
+        "Inter", ui-sans-serif, system-ui, sans-serif,
         "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
         "Noto Color Emoji";
 
-    --color-zinc-50: #fafafa;
-    --color-zinc-100: #f5f5f5;
-    --color-zinc-200: #e5e5e5;
-    --color-zinc-300: #d4d4d4;
-    --color-zinc-400: #a3a3a3;
-    --color-zinc-500: #737373;
-    --color-zinc-600: #525252;
-    --color-zinc-700: #404040;
-    --color-zinc-800: #262626;
-    --color-zinc-900: #171717;
-    --color-zinc-950: #0a0a0a;
+    /* Shell */
+    --color-rail: #0f1c2e;
+    --color-rail-hover: #16263d;
+    --color-rail-line: #2b3a52;
+    --color-rail-icon: #cbd5e1;
+    --color-rail-active: #19c37d;
+    --color-badge: #e11d48;
+    --color-page: #d3dbe6;
+    --color-titlebar: #e6ebf2;
 
-    --color-accent: #0f766e;
-    --color-accent-content: #0f766e;
+    /* Panel */
+    --color-tab: #343f50;
+    --color-strip: #e3e7ee;
+    --color-kv: #f3f4f6;
+    --color-line: #e5e7eb;
+    --color-thread: #f6f8fb;
+    --color-bubble-line: #cfd6e0;
+    --color-notice: #fff1c9;
+    --color-notice-ink: #5f4400;
+    --color-notice-closed: #fde4e4;
+    --color-notice-closed-ink: #7f1d1d;
+
+    /* Text */
+    --color-ink: #1f2937;
+    --color-ink-strong: #111827;
+    --color-ink-label: #374151;
+    --color-muted: #5b6472;
+    --color-link: #1a5fd0;
+    --color-link-hover: #0f3f9a;
+
+    /* Buttons and fields */
+    --color-primary: #1d5fd0;
+    --color-primary-hover: #174ca8;
+    --color-neutral: #eef1f6;
+    --color-neutral-line: #d5dbe5;
+    --color-required: #c81e3a;
+    --color-danger: #b91c1c;
+    --color-danger-hover: #7f1d1d;
+    --color-field-line: #c3ccd9;
+
+    /* Status pills */
+    --color-st-open: #1e40af;
+    --color-st-open-bg: #dbeafe;
+    --color-st-progress: #92400e;
+    --color-st-progress-bg: #fef3c7;
+    --color-st-resolved: #065f46;
+    --color-st-resolved-bg: #d1fae5;
+    --color-st-closed: #991b1b;
+    --color-st-closed-bg: #fee2e2;
+
+    /* Priority dots */
+    --color-pri-low: #16a34a;
+    --color-pri-medium: #2563eb;
+    --color-pri-high: #ea580c;
+    --color-pri-urgent: #dc2626;
+
+    --color-accent: #1d5fd0;
+    --color-accent-content: #1d5fd0;
     --color-accent-foreground: #ffffff;
-}
-
-/* =========================
-   Dark Theme Variables
-   ========================= */
-
-@layer theme {
-    .dark {
-        --color-accent: var(--color-white);
-        --color-accent-content: var(--color-white);
-        --color-accent-foreground: var(--color-neutral-800);
-    }
 }
 
 /* =========================
@@ -63,7 +99,7 @@
     }
 
     body {
-        @apply text-sm leading-relaxed;
+        @apply bg-page text-sm leading-[normal] text-ink;
     }
 
     h1,
@@ -73,18 +109,551 @@
         @apply font-semibold tracking-tight;
     }
 
-    html:not(.dark) body {
-        background:
-            radial-gradient(circle at top left, rgba(15, 118, 110, 0.07), transparent 30rem),
-            linear-gradient(180deg, #f7faf8 0%, #f2f6f4 100%);
-        color: #172033;
+    a {
+        color: var(--color-link);
     }
 
-    html:not(.dark) h1,
-    html:not(.dark) h2,
-    html:not(.dark) h3,
-    html:not(.dark) h4 {
-        color: #111827;
+    a:hover {
+        color: var(--color-link-hover);
+    }
+}
+
+/* =========================
+   Shell
+   ========================= */
+
+@layer components {
+    .rail-link {
+        @apply relative flex h-[46px] w-14 cursor-pointer items-center justify-center border-0 bg-transparent p-0 text-rail-icon;
+    }
+
+    .rail-link:hover,
+    .rail-link.is-active {
+        @apply bg-rail-hover text-white;
+    }
+
+    .rail-link.is-active::before {
+        content: "";
+        @apply absolute inset-y-0 left-0 w-1 bg-rail-active;
+    }
+
+    .rail-sep {
+        @apply my-2 h-px w-8 shrink-0 bg-rail-line;
+    }
+
+    .rail-icon {
+        @apply size-[22px] fill-none stroke-current;
+        stroke-width: 1.7;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    @media (max-width: 700px) {
+        .rail-link.is-active::before {
+            @apply inset-x-0 top-auto bottom-0 h-[3px] w-auto;
+        }
+
+        .rail-sep {
+            @apply mx-2 my-0 h-[30px] w-px;
+        }
+    }
+}
+
+/* =========================
+   Page Components
+   ========================= */
+
+@layer components {
+    /* Panel: dark tab on a grey strip */
+    .panel {
+        @apply min-w-0 overflow-hidden bg-white;
+        border-radius: 0 8px 8px 8px;
+    }
+
+    .panel-strip {
+        @apply flex items-end gap-1 bg-strip;
+    }
+
+    .panel-tab {
+        @apply flex h-11 items-center bg-tab px-[22px] text-[15px] font-semibold text-white no-underline;
+        border-radius: 8px 8px 0 0;
+    }
+
+    .panel-tab:hover {
+        @apply text-white;
+    }
+
+    .panel-tab.is-off {
+        @apply h-10 bg-white text-ink-strong;
+    }
+
+    .panel-tab.is-off:hover {
+        @apply bg-thread text-ink-strong;
+    }
+
+    .panel-tab .cnt {
+        @apply ml-2.5 rounded-[10px] bg-[#4b5870] px-2 py-px text-xs font-semibold;
+    }
+
+    /* Toolbar: white bar with text buttons */
+    .tbar {
+        @apply flex min-h-[52px] flex-wrap items-center gap-x-7 gap-y-1.5 rounded-lg bg-white px-5;
+    }
+
+    .tbar-btn {
+        @apply cursor-pointer border-0 bg-transparent py-3.5 text-[15px] font-semibold text-ink-strong no-underline;
+    }
+
+    .tbar-btn:hover {
+        @apply text-link;
+    }
+
+    .tbar-btn.is-danger {
+        @apply ml-auto text-danger;
+    }
+
+    .tbar-btn.is-danger:hover {
+        @apply text-danger-hover;
+    }
+
+    /* Key-value grid */
+    .kv {
+        @apply grid;
+        grid-template-columns: 150px 1fr 150px 1fr 150px 1fr;
+    }
+
+    .kv-k {
+        @apply box-border flex min-h-11 items-center border-t border-r border-line bg-kv px-3 py-2 text-[11px] font-bold tracking-[.03em] text-ink-label uppercase;
+    }
+
+    .kv-v {
+        @apply box-border flex min-h-11 min-w-0 items-center border-t border-r border-line px-3 py-2 text-sm;
+    }
+
+    .kv-first {
+        @apply border-t-0;
+    }
+
+    .kv-span5 {
+        grid-column: span 5;
+    }
+
+    .kv-span3 {
+        grid-column: span 3;
+    }
+
+    @media (max-width: 1100px) {
+        .kv {
+            grid-template-columns: 140px 1fr;
+        }
+
+        .kv-span5,
+        .kv-span3 {
+            grid-column: auto;
+        }
+    }
+
+    /* Buttons */
+    .btn {
+        @apply inline-flex h-[38px] cursor-pointer items-center justify-center rounded-md border border-transparent px-[18px] text-sm font-semibold no-underline;
+    }
+
+    .btn-n {
+        @apply border-neutral-line bg-neutral text-ink;
+    }
+
+    .btn-n:hover {
+        @apply text-ink;
+        background: #e3e8f0;
+    }
+
+    .btn-p {
+        @apply bg-primary text-white;
+    }
+
+    .btn-p:hover {
+        @apply bg-primary-hover text-white;
+    }
+
+    .btn-d {
+        @apply bg-danger text-white;
+    }
+
+    .btn-d:hover {
+        @apply bg-danger-hover text-white;
+    }
+
+    .btn:disabled {
+        @apply cursor-not-allowed opacity-60;
+    }
+
+    /* Fields */
+    .inp,
+    .sel {
+        @apply box-border h-[34px] rounded-sm border border-field-line bg-white px-2.5 text-sm text-ink-strong;
+    }
+
+    .inp::placeholder {
+        @apply text-[#6b7280];
+    }
+
+    .inp:focus,
+    .sel:focus {
+        @apply border-primary outline-2 outline-offset-0 outline-primary;
+    }
+
+    .inp[readonly] {
+        @apply bg-kv;
+    }
+
+    .hint {
+        @apply mt-1.5 mb-0 text-xs text-muted;
+    }
+
+    /* Data table */
+    .tbl {
+        @apply w-full border-collapse text-sm;
+    }
+
+    .tbl th {
+        @apply border-y border-line bg-kv px-3 py-[9px] text-left text-[11px] font-bold tracking-[.03em] whitespace-nowrap text-ink-label uppercase;
+    }
+
+    .tbl th a {
+        @apply text-inherit no-underline;
+    }
+
+    .tbl th a:hover {
+        @apply text-link;
+    }
+
+    .tbl td {
+        @apply border-b border-line px-3 py-2.5 align-middle;
+    }
+
+    .tbl tbody tr:hover {
+        @apply bg-thread;
+    }
+
+    .tbl td a {
+        @apply font-medium no-underline;
+    }
+
+    /* Filter variant of the key-value grid (Laporan) */
+    .kv-tall .kv-k,
+    .kv-tall .kv-v {
+        min-height: 50px;
+    }
+
+    .kv-tall .inp,
+    .kv-tall .sel {
+        @apply w-full;
+    }
+
+    @media (max-width: 1100px) {
+        .kv-tall .kv-blank {
+            @apply hidden;
+        }
+    }
+
+    /* Form variant of the key-value grid (Create ticket) */
+    .kv-form {
+        grid-template-columns: 150px 1fr 150px 1fr;
+    }
+
+    .kv-form .kv-k {
+        @apply items-start gap-[3px] p-3;
+        min-height: 0;
+    }
+
+    .kv-form .kv-v {
+        @apply block px-3 pt-2 pb-2.5;
+        min-height: 0;
+    }
+
+    .kv-form .inp,
+    .kv-form .sel {
+        @apply h-9 w-full;
+    }
+
+    @media (max-width: 1100px) {
+        .kv-form {
+            grid-template-columns: 140px 1fr;
+        }
+    }
+
+    /* Attachment table (Create ticket) */
+    .att {
+        @apply grid text-[13px];
+        grid-template-columns: 1fr 110px;
+    }
+
+    .att-h {
+        @apply border-b border-line bg-kv px-3 py-2 text-[11px] font-bold tracking-[.03em] text-ink-label uppercase;
+    }
+
+    .att-c {
+        @apply border-b border-line p-3 text-muted;
+    }
+
+    /* Guide card (Create ticket) */
+    .guide {
+        @apply rounded-lg bg-white px-5 pt-5 pb-2;
+    }
+
+    .guide h2 {
+        @apply mb-3.5 text-lg font-bold text-ink-strong;
+    }
+
+    .guide h3 {
+        @apply mb-2 text-[11px] font-bold tracking-[.04em] text-muted uppercase;
+    }
+
+    .guide section {
+        @apply border-t border-line pt-3.5 pb-4;
+    }
+
+    .guide section:first-of-type {
+        @apply border-t-0 pt-0;
+    }
+
+    .guide ul,
+    .guide ol {
+        @apply m-0 pl-[18px] text-[13.5px] leading-[1.5] text-ink;
+    }
+
+    .guide ul {
+        list-style: disc;
+    }
+
+    .guide ol {
+        list-style: decimal;
+    }
+
+    .guide li {
+        @apply mb-[5px];
+    }
+
+    /* Notice banner */
+    .notice {
+        @apply rounded-lg bg-notice px-[22px] py-3.5 text-sm text-notice-ink;
+    }
+
+    .notice.is-closed {
+        @apply bg-notice-closed text-notice-closed-ink;
+    }
+
+    .notice a {
+        @apply text-inherit underline;
+    }
+
+    /* Conversation */
+    .thread {
+        @apply flex flex-col gap-6 bg-thread px-[22px] pt-[22px] pb-6;
+    }
+
+    .msg {
+        @apply flex items-start gap-3.5;
+    }
+
+    .avatar {
+        @apply flex size-11 shrink-0 items-center justify-center rounded-full text-[17px] font-semibold text-white;
+    }
+
+    .msg-head {
+        @apply mb-2 flex flex-wrap items-center gap-2;
+    }
+
+    .msg-head b {
+        @apply text-sm text-ink-strong;
+    }
+
+    .msg-head .when {
+        @apply text-[13px] text-muted;
+    }
+
+    .role {
+        @apply rounded-[5px] px-2 py-0.5 text-[11px] font-bold;
+    }
+
+    .role-reporter {
+        @apply bg-st-open-bg text-st-open;
+    }
+
+    .role-agent {
+        @apply bg-[#e2e8f0] text-[#334155];
+    }
+
+    .role-internal {
+        @apply bg-[#fde68a] text-[#78350f];
+    }
+
+    .bubble {
+        @apply relative rounded-lg border border-bubble-line bg-white px-[18px] py-3.5 text-[15px] leading-[1.55] text-ink-strong;
+    }
+
+    .bubble::before {
+        content: "";
+        @apply absolute top-4 -left-[7px] size-3 rotate-45 border-b border-l border-bubble-line bg-white;
+    }
+
+    .bubble.is-internal {
+        @apply border-[#f0d27a] bg-[#fffbeb];
+    }
+
+    .bubble.is-internal::before {
+        @apply border-[#f0d27a] bg-[#fffbeb];
+    }
+
+    .empty-note {
+        @apply rounded-lg border border-dashed border-[#aeb8c8] px-[22px] py-3.5 text-sm text-muted;
+    }
+
+    /* KPI cards */
+    .kpi {
+        @apply grid grid-cols-5;
+    }
+
+    .kpi > a {
+        @apply block border-r border-line px-5 pt-4 pb-[18px] text-inherit no-underline;
+        border-top: 3px solid var(--c);
+    }
+
+    .kpi > a:last-child {
+        @apply border-r-0;
+    }
+
+    .kpi > a:hover {
+        @apply bg-thread text-inherit;
+    }
+
+    .kpi-l {
+        @apply text-[11px] font-bold tracking-[.04em] text-ink-label uppercase;
+    }
+
+    .kpi-n {
+        @apply mt-1.5 text-[34px] leading-[1.15] font-bold text-ink-strong;
+    }
+
+    .kpi-c {
+        @apply mt-0.5 text-[13px] text-muted;
+    }
+
+    @media (max-width: 1100px) {
+        .kpi {
+            @apply grid-cols-3;
+        }
+    }
+
+    @media (max-width: 700px) {
+        .kpi {
+            @apply grid-cols-2;
+        }
+    }
+
+    /* Label / bar / count rows */
+    .bars {
+        @apply grid items-center;
+        grid-template-columns: minmax(0, 1fr) 110px 44px;
+    }
+
+    .bars > * {
+        @apply box-border flex h-10 min-w-0 items-center border-t border-line px-3;
+    }
+
+    .bars > .is-first {
+        @apply border-t-0;
+    }
+
+    .bars .nm {
+        @apply flex items-center overflow-hidden text-sm whitespace-nowrap text-ink-strong;
+    }
+
+    .bars .bar {
+        @apply px-1;
+    }
+
+    .bars .bar i {
+        @apply block h-2 rounded-xs;
+        background: var(--c, #3b5b8c);
+    }
+
+    .bars .ct {
+        @apply justify-end text-sm font-semibold;
+    }
+
+    .bars .ct.is-zero {
+        @apply font-normal text-[#6b7280];
+    }
+
+    .empty-state {
+        @apply px-5 py-[34px] text-center text-sm text-[#4b5563];
+    }
+
+    .empty-state b {
+        @apply mb-1 block text-[15px] text-ink-strong;
+    }
+
+    /* Status pill and priority dot */
+    .pill {
+        @apply inline-block rounded-md px-[9px] py-0.5 text-[11.5px] font-bold whitespace-nowrap;
+    }
+
+    .pill-open {
+        @apply bg-st-open-bg text-st-open;
+    }
+
+    .pill-in_progress {
+        @apply bg-st-progress-bg text-st-progress;
+    }
+
+    .pill-resolved {
+        @apply bg-st-resolved-bg text-st-resolved;
+    }
+
+    .pill-closed {
+        @apply bg-st-closed-bg text-st-closed;
+    }
+
+    .pill-neutral {
+        @apply bg-[#e2e8f0] text-[#334155];
+    }
+
+    /* Text action in tables */
+    .act {
+        @apply cursor-pointer border-0 bg-transparent p-0 text-sm font-semibold text-link;
+    }
+
+    .act:hover {
+        @apply text-link-hover;
+    }
+
+    .act.is-danger {
+        @apply text-danger;
+    }
+
+    .act.is-danger:hover {
+        @apply text-danger-hover;
+    }
+
+    .dot {
+        @apply mr-[7px] inline-block size-2 shrink-0 rounded-full;
+    }
+
+    .dot-low {
+        @apply bg-pri-low;
+    }
+
+    .dot-medium {
+        @apply bg-pri-medium;
+    }
+
+    .dot-high {
+        @apply bg-pri-high;
+    }
+
+    .dot-urgent {
+        @apply bg-pri-urgent;
     }
 }
 
@@ -107,112 +676,11 @@ select:focus[data-flux-control] {
 }
 
 /* =========================
-   Custom Utilities
-   ========================= */
-
-@utility shadow-card {
-    box-shadow:
-        0 1px 3px 0 rgb(0 0 0 / 0.04),
-        0 1px 2px -1px rgb(0 0 0 / 0.06);
-}
-
-@utility shadow-card-hover {
-    box-shadow:
-        0 4px 12px 0 rgb(0 0 0 / 0.06),
-        0 2px 4px -2px rgb(0 0 0 / 0.08);
-}
-
-/* =========================
-   Light Mode Tuning
-   ========================= */
-
-@layer utilities {
-    html:not(.dark) .bg-zinc-50 {
-        background-color: #f8faf9;
-    }
-
-    html:not(.dark) .bg-zinc-100 {
-        background-color: #eef4f1;
-    }
-
-    html:not(.dark) .border-zinc-200 {
-        border-color: #dfe7e3;
-    }
-
-    html:not(.dark) .text-zinc-500 {
-        color: #647067;
-    }
-
-    html:not(.dark) .text-zinc-600 {
-        color: #4b5a52;
-    }
-
-    html:not(.dark) .shadow-card {
-        box-shadow:
-            0 1px 2px rgb(15 23 42 / 0.04),
-            0 8px 24px rgb(15 23 42 / 0.05);
-    }
-
-    html:not(.dark) .bg-sky-400 {
-        background-color: #38bdf8;
-    }
-
-    html:not(.dark) .bg-sky-500 {
-        background-color: #0ea5e9;
-    }
-
-    html:not(.dark) .bg-amber-400 {
-        background-color: #f59e0b;
-    }
-
-    html:not(.dark) .bg-amber-500 {
-        background-color: #d97706;
-    }
-
-    html:not(.dark) .bg-emerald-400 {
-        background-color: #10b981;
-    }
-
-    html:not(.dark) .bg-emerald-500 {
-        background-color: #059669;
-    }
-
-    html:not(.dark) .bg-rose-400 {
-        background-color: #fb7185;
-    }
-
-    html:not(.dark) .bg-rose-500 {
-        background-color: #f43f5e;
-    }
-}
-
-/* =========================
-   Light Mode Form Surface
-   ========================= */
-
-html:not(.dark) input[data-flux-control],
-html:not(.dark) textarea[data-flux-control],
-html:not(.dark) select[data-flux-control] {
-    background-color: #fbfdfc;
-    border-color: #dbe5df;
-    color: #172033;
-}
-
-html:not(.dark) input[data-flux-control]::placeholder,
-html:not(.dark) textarea[data-flux-control]::placeholder {
-    color: #8a968f;
-}
-
-/* =========================
    Modal
    ========================= */
 
 [data-flux-modal] > dialog::backdrop {
     background-color: rgba(0, 0, 0, 0.5) !important;
-}
-
-.dark [data-flux-modal] > dialog::backdrop {
-    background-color: rgba(0, 0, 0, 0.7) !important;
 }
 
 /* =========================
@@ -239,58 +707,62 @@ html:not(.dark) textarea[data-flux-control]::placeholder {
     border-color: #fda4af !important;
 }
 
-.dark [data-flux-toast-dialog][data-variant="success"] > div {
-    background-color: #052e16 !important;
-    border-color: #166534 !important;
-}
-
-.dark [data-flux-toast-dialog][data-variant="warning"] > div {
-    background-color: #451a03 !important;
-    border-color: #92400e !important;
-}
-
-.dark [data-flux-toast-dialog][data-variant="info"] > div {
-    background-color: #083344 !important;
-    border-color: #155e75 !important;
-}
-
-.dark [data-flux-toast-dialog][data-variant="danger"] > div {
-    background-color: #4c0519 !important;
-    border-color: #9f1239 !important;
-}
-
 /* =========================
    Trix Editor
    ========================= */
 
 trix-toolbar {
-    margin-bottom: 0.5rem;
+    margin: 10px 0;
 }
 
 trix-toolbar .trix-button-row {
-    gap: 0.5rem;
+    flex-wrap: wrap;
+    gap: 10px;
+    overflow: visible;
 }
 
-trix-toolbar .trix-button-group {
+trix-toolbar .trix-button-group,
+trix-toolbar .trix-button-group:not(:first-child) {
+    margin: 0;
     overflow: hidden;
-    border-radius: 0.5rem;
-    border-color: #dbe5df;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
     background: #ffffff;
 }
 
 trix-toolbar .trix-button {
-    border-color: #dbe5df;
+    border: 0;
+    border-right: 1px solid #e2e8f0;
     background: #ffffff;
-    color: #172033;
+    color: #1f2937;
+}
+
+trix-toolbar .trix-button:last-child {
+    border-right: 0;
+}
+
+trix-toolbar .trix-button:not(:first-child) {
+    border-left: 0;
+}
+
+trix-toolbar .trix-button--icon {
+    width: 34px;
+    max-width: none;
+    height: 32px;
+}
+
+trix-toolbar .trix-button--icon::before {
+    background-size: 16px;
+    opacity: 0.85;
 }
 
 trix-toolbar .trix-button:hover {
-    background: #f1f5f3;
+    background: #f1f5f9;
 }
 
 trix-toolbar .trix-button.trix-active {
-    background: #ccfbf1;
-    color: #0f766e;
+    background: #dbeafe;
+    color: #1e40af;
 }
 
 trix-toolbar .trix-button:disabled {
@@ -298,17 +770,85 @@ trix-toolbar .trix-button:disabled {
 }
 
 trix-editor {
-    min-height: 10rem;
-    border-radius: 0.75rem;
-    border-color: #dbe5df;
-    background: #fbfdfc;
-    color: #172033;
+    min-height: 130px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 12px 14px;
+    background: #ffffff;
+    color: #111827;
+    font-size: 14px;
 }
 
 trix-editor:focus {
     outline: none;
-    border-color: #0f766e;
-    box-shadow: 0 0 0 1px #0f766e;
+    border-color: #1d5fd0;
+    box-shadow: 0 0 0 1px #1d5fd0;
+}
+
+/* Flat editor with text labels (Create ticket) */
+.editor-flat trix-toolbar {
+    margin: 0;
+    padding: 12px 16px;
+    border-bottom: 1px solid #e5e7eb;
+    background: #fafbfc;
+}
+
+.editor-flat trix-toolbar .trix-button-row {
+    gap: 8px;
+}
+
+.editor-flat trix-toolbar .trix-button-group {
+    border-radius: 4px;
+}
+
+.editor-flat trix-toolbar .trix-button-group--file-tools,
+.editor-flat trix-toolbar .trix-button--icon-decrease-nesting-level,
+.editor-flat trix-toolbar .trix-button--icon-increase-nesting-level {
+    display: none;
+}
+
+.editor-flat trix-toolbar .trix-button--icon {
+    width: auto;
+    min-width: 30px;
+    height: 28px;
+    padding: 0 9px;
+    font-size: 0;
+    text-indent: 0;
+}
+
+.editor-flat trix-toolbar .trix-button--icon::before {
+    display: none;
+}
+
+.editor-flat trix-toolbar .trix-button--icon::after {
+    font-size: 12.5px;
+    line-height: 28px;
+}
+
+.editor-flat trix-toolbar .trix-button--icon-bold::after { content: "B"; font-weight: 700; }
+.editor-flat trix-toolbar .trix-button--icon-italic::after { content: "I"; font-style: italic; }
+.editor-flat trix-toolbar .trix-button--icon-strike::after { content: "S"; text-decoration: line-through; }
+.editor-flat trix-toolbar .trix-button--icon-link::after { content: "Tautan"; }
+.editor-flat trix-toolbar .trix-button--icon-heading-1::after { content: "Judul"; }
+.editor-flat trix-toolbar .trix-button--icon-quote::after { content: "Kutipan"; }
+.editor-flat trix-toolbar .trix-button--icon-code::after { content: "Kode"; }
+.editor-flat trix-toolbar .trix-button--icon-bullet-list::after { content: "Poin"; }
+.editor-flat trix-toolbar .trix-button--icon-number-list::after { content: "Nomor"; }
+.editor-flat trix-toolbar .trix-button--icon-undo::after { content: "Urungkan"; }
+.editor-flat trix-toolbar .trix-button--icon-redo::after { content: "Ulangi"; }
+
+.editor-flat trix-editor {
+    min-height: 190px;
+    border: 0;
+    border-radius: 0;
+    padding: 14px 16px;
+    line-height: 1.55;
+}
+
+.editor-flat trix-editor:focus {
+    box-shadow: none;
+    outline: 2px solid #1d5fd0;
+    outline-offset: -2px;
 }
 
 .trix-content {
@@ -349,7 +889,7 @@ trix-editor:focus {
 }
 
 .trix-content a {
-    color: #0f766e;
+    color: #1a5fd0;
     text-decoration: underline;
 }
 
@@ -371,122 +911,4 @@ trix-editor:focus {
     font-size: 0.75rem;
     color: #71717a;
     text-align: center;
-}
-
-/* =========================
-   Trix Editor - Dark Mode
-   ========================= */
-
-.dark trix-toolbar {
-    color: #e4e4e7;
-}
-
-.dark trix-toolbar .trix-button-group {
-    border-color: #3f3f46 !important;
-    background: #18181b !important;
-}
-
-.dark trix-toolbar .trix-button {
-    border-color: #3f3f46 !important;
-    background: #18181b !important;
-    color: #e4e4e7 !important;
-}
-
-.dark trix-toolbar .trix-button:hover {
-    background: #27272a !important;
-}
-
-.dark trix-toolbar .trix-button.trix-active {
-    background: #334155 !important;
-    color: #ffffff !important;
-}
-
-.dark trix-toolbar .trix-button:disabled {
-    background: #18181b !important;
-    color: #52525b !important;
-    opacity: 0.5;
-}
-
-.dark trix-toolbar .trix-button--icon::before {
-    filter: invert(1);
-    opacity: 0.85;
-}
-
-.dark trix-toolbar .trix-button--icon:hover::before {
-    opacity: 1;
-}
-
-.dark trix-toolbar .trix-button--icon:disabled::before {
-    opacity: 0.35;
-}
-
-.dark trix-toolbar .trix-dialog {
-    border-color: #3f3f46 !important;
-    background: #18181b !important;
-    color: #e4e4e7 !important;
-    box-shadow: 0 10px 30px rgb(0 0 0 / 0.35);
-}
-
-.dark trix-toolbar .trix-input--dialog {
-    border-color: #3f3f46 !important;
-    background: #09090b !important;
-    color: #f4f4f5 !important;
-}
-
-.dark trix-toolbar .trix-input--dialog::placeholder {
-    color: #71717a;
-}
-
-.dark trix-editor {
-    border-color: #3f3f46 !important;
-    background: #18181b !important;
-    color: #f4f4f5 !important;
-}
-
-.dark trix-editor:focus {
-    border-color: #52525b !important;
-    box-shadow: 0 0 0 1px #52525b;
-}
-
-.dark .trix-content {
-    color: #f4f4f5;
-}
-
-.dark .trix-content a {
-    color: #60a5fa;
-}
-
-.dark .trix-content blockquote {
-    border-left-color: #52525b;
-    color: #d4d4d8;
-}
-
-.dark .trix-content pre {
-    background: #27272a;
-    color: #f4f4f5;
-}
-
-.dark .trix-content img {
-    border-color: #3f3f46;
-}
-
-.dark .trix-content figcaption {
-    color: #a1a1aa;
-}
-
-/* =========================
-   File Input - Dark Mode
-   ========================= */
-
-.dark input[type="file"]::file-selector-button {
-    border: 0;
-    border-radius: 0.75rem;
-    background: #27272a;
-    color: #f4f4f5;
-    padding: 0.5rem 1rem;
-    font-weight: 600;
-}
-
-.dark input[type="file"]::file-selector-button:hover {
-    background: #3f3f46;
 }

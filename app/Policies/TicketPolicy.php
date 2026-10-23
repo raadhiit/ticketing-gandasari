@@ -48,12 +48,16 @@ class TicketPolicy
 
     public function reopen(User $user, Ticket $ticket): bool
     {
-        return $this->isSupport($user)
+        return $user->hasRole('superadmin')
             && $ticket->status === 'CLOSED';
     }
 
     public function comment(User $user, Ticket $ticket): bool
     {
+        if ($ticket->status === 'CLOSED') {
+            return false;
+        }
+
         if (! $user->can('ticket.comment')) {
             return false;
         }
@@ -68,8 +72,19 @@ class TicketPolicy
             && $user->can('ticket.comment.internal');
     }
 
+    /**
+     * Support can always delete. A requester may only delete their own ticket
+     * while it is still untouched: Open, never assigned, and without any reply.
+     */
     public function delete(User $user, Ticket $ticket): bool
     {
-        return $this->isSupport($user);
+        if ($this->isSupport($user)) {
+            return true;
+        }
+
+        return $ticket->requester_id === $user->id
+            && $ticket->status === 'OPEN'
+            && ! $ticket->assignments()->exists()
+            && ! $ticket->comments()->exists();
     }
 }

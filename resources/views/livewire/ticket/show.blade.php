@@ -1,788 +1,346 @@
-{{-- Forum Header --}}
 @php
+    $user = auth()->user();
     $requesterName = $ticket->requester_name ?: $ticket->requester?->name;
-    $requesterInitial = strtoupper(substr($requesterName ?: 'U', 0, 1));
+    $agentName = $currentAssignment?->assignedTo?->name;
+    $isClosed = $ticket->status === 'CLOSED';
+    $isSupport = $user->can('ticket.assign');
 
-    $statusLabel = match ($ticket->status) {
-        'OPEN' => 'Tiket Baru',
-        'IN_PROGRESS' => 'Sedang Diproses',
-        'RESOLVED' => 'Tiket ini sudah Selesai',
-        'CLOSED' => 'Tiket ini sudah Ditutup',
-        default => str_replace('_', ' ', $ticket->status),
-    };
+    $prettify = fn (?string $value) => ucwords(strtolower(str_replace('_', ' ', (string) $value)));
+    $latestHistory = $histories->first();
 
-    $statusNoticeClasses = match ($ticket->status) {
-        'OPEN' => 'border-sky-200 bg-sky-50 text-sky-900 dark:border-sky-800/60 dark:bg-sky-950/30 dark:text-sky-200',
-        'IN_PROGRESS'
-            => 'border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-800/60 dark:bg-amber-950/30 dark:text-amber-200',
-        'RESOLVED'
-            => 'border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-800/60 dark:bg-emerald-950/30 dark:text-emerald-200',
-        'CLOSED'
-            => 'border-rose-200 bg-rose-50 text-rose-900 dark:border-rose-800/60 dark:bg-rose-950/30 dark:text-rose-200',
-        default => 'border-zinc-200 bg-zinc-50 text-zinc-900 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200',
-    };
+    $previewMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 'image/bmp'];
 
-    $avatarClasses = match ($ticket->status) {
-        'OPEN' => 'bg-sky-100 text-sky-700 ring-sky-200 dark:bg-sky-950/50 dark:text-sky-300 dark:ring-sky-800/70',
-        'IN_PROGRESS'
-            => 'bg-amber-100 text-amber-700 ring-amber-200 dark:bg-amber-950/50 dark:text-amber-300 dark:ring-amber-800/70',
-        'RESOLVED'
-            => 'bg-emerald-100 text-emerald-700 ring-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:ring-emerald-800/70',
-        'CLOSED'
-            => 'bg-rose-100 text-rose-700 ring-rose-200 dark:bg-rose-950/50 dark:text-rose-300 dark:ring-rose-800/70',
-        default => 'bg-zinc-100 text-zinc-700 ring-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:ring-zinc-700',
-    };
-
-    $priorityClasses = match ($ticket->priority) {
-        'URGENT'
-            => 'bg-rose-100 text-rose-700 ring-rose-200 dark:bg-rose-950/50 dark:text-rose-300 dark:ring-rose-800/70',
-        'HIGH'
-            => 'bg-orange-100 text-orange-700 ring-orange-200 dark:bg-orange-950/50 dark:text-orange-300 dark:ring-orange-800/70',
-        'MEDIUM'
-            => 'bg-blue-100 text-blue-700 ring-blue-200 dark:bg-blue-950/50 dark:text-blue-300 dark:ring-blue-800/70',
-        'LOW' => 'bg-slate-100 text-slate-700 ring-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:ring-slate-700',
-        default => 'bg-zinc-100 text-zinc-700 ring-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:ring-zinc-700',
-    };
-
-    $sidebarAccentBar = match ($ticket->status) {
-        'OPEN' => 'bg-sky-400 dark:bg-sky-500',
-        'IN_PROGRESS' => 'bg-amber-400 dark:bg-amber-500',
-        'RESOLVED' => 'bg-emerald-400 dark:bg-emerald-500',
-        'CLOSED' => 'bg-rose-400 dark:bg-rose-500',
-        default => 'bg-zinc-400 dark:bg-zinc-500',
-    };
+    $actionLabels = [
+        'created' => 'Ticket dibuat',
+        'updated' => 'Ticket diperbarui',
+        'assigned' => 'Ticket ditugaskan',
+        'status_changed' => 'Status diubah',
+        'comment_added' => 'Balasan ditambahkan',
+        'closed' => 'Ticket ditutup',
+        'reopened' => 'Ticket dibuka kembali',
+    ];
 @endphp
 
 <div wire:poll.15s="checkNewComments">
-    <x-confirm-dialog name="confirm-ticket-delete" />
-    <x-confirm-dialog name="confirm-attachment-delete" />
-    {{-- Breadcrumb --}}
-    <div class="mb-4 flex items-center gap-2 text-sm">
-        <a href="{{ route('tickets.index') }}" wire:navigate
-            class="font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400">
-            {{ __('Daftar Ticket') }}
-        </a>
+<div class="flex flex-wrap items-start gap-4">
+    {{-- Left column --}}
+    <div class="flex min-w-0 flex-[999_1_560px] flex-col gap-3">
+        {{-- Toolbar --}}
+        <div class="tbar print:hidden" role="toolbar" aria-label="{{ __('Aksi ticket') }}">
+            @can('close', $ticket)
+                <flux:dropdown>
+                    <button type="button" class="tbar-btn">{{ __('Ubah Status') }}</button>
 
-        <span class="text-zinc-300 dark:text-zinc-700">/</span>
+                    <flux:menu>
+                        @if ($ticket->status === 'OPEN')
+                            <flux:menu.item wire:click="changeStatus('IN_PROGRESS')">{{ __('Mulai Dikerjakan') }}</flux:menu.item>
+                        @endif
 
-        <span
-            class="rounded-full bg-zinc-100 px-2.5 py-1 font-mono text-xs font-semibold text-zinc-700 dark:bg-zinc-600 dark:text-zinc-300">
-            {{ $ticket->ticket_number }}
-        </span>
-    </div>
+                        @if ($ticket->status === 'IN_PROGRESS')
+                            <flux:menu.item wire:click="changeStatus('RESOLVED')">{{ __('Tandai Selesai') }}</flux:menu.item>
+                        @endif
 
-    {{-- Status Notice --}}
-    <div class="mb-4 rounded-lg border px-4 py-3 text-sm {{ $statusNoticeClasses }}">
-        <span class="font-bold">{{ $statusLabel }}</span>
-        <span class="mx-1">|</span>
-        <span>{{ $ticket->updated_at->diffForHumans() }}</span>
-    </div>
+                        @if ($ticket->status === 'RESOLVED')
+                            <flux:menu.item wire:click="changeStatus('CLOSED')">{{ __('Tutup Ticket') }}</flux:menu.item>
+                        @endif
+                    </flux:menu>
+                </flux:dropdown>
+            @endcan
 
-    <div class="grid grid-cols-1 gap-6 xl:grid-cols-3">
-        {{-- Left Thread --}}
-        <div class="xl:col-span-2">
-            {{-- Ticket Title + Actions --}}
-            <div class="mb-5 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
-                <div class="min-w-0">
-                    <h1
-                        class="max-w-4xl break-words text-2xl font-bold tracking-wide text-zinc-950 dark:text-white sm:text-3xl">
-                        #{{ str_replace('TKT-', '', $ticket->ticket_number) }} {{ $ticket->title }}
-                    </h1>
-                </div>
+            @can('assign', $ticket)
+                <flux:modal.trigger name="assign-agent">
+                    <button type="button" class="tbar-btn">{{ __('Ubah Agent') }}</button>
+                </flux:modal.trigger>
+            @endcan
 
-                <div class="flex flex-row flex-wrap items-center gap-2 lg:flex-nowrap lg:justify-end">
-                    @can('update', $ticket)
-                        <flux:button :href="route('tickets.edit', $ticket)" wire:navigate icon="pencil-square"
-                            variant="filled" class="shrink-0">
-                            {{ __('Edit Ticket') }}
-                        </flux:button>
-                    @endcan
+            @can('reopen', $ticket)
+                <button type="button" class="tbar-btn" wire:click="changeStatus('REOPEN')">{{ __('Buka Kembali') }}</button>
+            @endcan
 
-                    @can('close', $ticket)
-                        <flux:dropdown>
-                            <flux:button icon="chevron-down" variant="primary" class="shrink-0">
-                                {{ __('Ubah Status') }}
-                            </flux:button>
+            <button type="button" class="tbar-btn" onclick="window.print()">{{ __('Print') }}</button>
 
-                            <flux:menu>
-                                @if ($ticket->status === 'OPEN')
-                                    <flux:menu.item wire:click="changeStatus('IN_PROGRESS')">
-                                        {{ __('Mulai Dikerjakan') }}
-                                    </flux:menu.item>
-                                @endif
+            @can('update', $ticket)
+                <a href="{{ route('tickets.edit', $ticket) }}" wire:navigate class="tbar-btn">{{ __('Edit') }}</a>
+            @endcan
 
-                                @if ($ticket->status === 'IN_PROGRESS')
-                                    <flux:menu.item wire:click="changeStatus('RESOLVED')">
-                                        {{ __('Tandai Selesai') }}
-                                    </flux:menu.item>
-                                @endif
+            @can('ticket.assign')
+                <a href="{{ route('tickets.create') }}" wire:navigate class="tbar-btn">{{ __('Buat Ticket') }}</a>
+            @endcan
 
-                                @if ($ticket->status === 'RESOLVED')
-                                    <flux:menu.item wire:click="changeStatus('CLOSED')">
-                                        {{ __('Tutup Ticket') }}
-                                    </flux:menu.item>
-                                @endif
-                            </flux:menu>
-                        </flux:dropdown>
-                    @endcan
+            @can('delete', $ticket)
+                <button type="button" x-data class="tbar-btn is-danger"
+                    @click="
+                        $dispatch('confirm-open', {
+                            name: 'confirm-ticket-delete',
+                            title: '{{ __('Hapus Ticket') }}',
+                            message: '{{ __('Yakin ingin menghapus ticket ini? Ticket tidak akan tampil lagi di daftar.') }}',
+                            method: 'delete',
+                            variant: 'danger',
+                            confirmLabel: '{{ __('Ya, Hapus') }}'
+                        });
 
-                    @can('reopen', $ticket)
-                        <flux:button wire:click="changeStatus('REOPEN')" icon="arrow-uturn-left" variant="filled"
-                            class="shrink-0">
-                            {{ __('Buka Kembali') }}
-                        </flux:button>
-                    @endcan
-
-                    @can('delete', $ticket)
-                        <flux:button x-data
-                            @click="
-                                $dispatch('confirm-open', {
-                                    name: 'confirm-ticket-delete',
-                                    title: '{{ __('Hapus Ticket') }}',
-                                    message: '{{ __('Yakin ingin menghapus ticket ini? Semua data terkait akan ikut terhapus.') }}',
-                                    method: 'delete',
-                                    variant: 'danger',
-                                    confirmLabel: '{{ __('Ya, Hapus') }}'
-                                });
-
-                                $nextTick(() => $flux.modal('confirm-ticket-delete').show());
-                            "
-                            icon="trash" variant="danger" class="shrink-0">
-                            {{ __('Hapus') }}
-                        </flux:button>
-                    @endcan
-                </div>
-            </div>
-
-            {{-- Main Ticket Post --}}
-            <div class="relative mb-7 pl-16">
-                <div
-                    class="absolute left-0 top-0 flex h-14 w-14 items-center justify-center rounded-full text-lg font-semibold ring-1 {{ $avatarClasses }}">
-                    {{ $requesterInitial }}
-                </div>
-
-                <div class="mb-3 flex flex-wrap items-center gap-x-2 gap-y-1">
-                    <span class="font-bold text-zinc-950 dark:text-white">
-                        {{ $requesterName }}
-                    </span>
-
-                    <span class="text-sm text-zinc-500 dark:text-zinc-400">
-                        {{ __('dilaporkan') }} {{ $ticket->created_at->diffForHumans() }}
-                    </span>
-                </div>
-
-                <div
-                    class="relative rounded-lg border border-zinc-300 bg-white px-5 py-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-                    <div
-                        class="absolute -left-2 top-5 h-4 w-4 rotate-45 border-b border-l border-zinc-300 bg-white dark:border-zinc-700 dark:bg-zinc-900">
-                    </div>
-
-                    {{-- <p class="whitespace-pre-line text-[15px] leading-7 text-zinc-900 dark:text-zinc-100">
-                        {{ $ticket->description }}
-                    </p> --}}
-                    <div class="trix-content text-[15px] leading-7 text-zinc-900 dark:text-zinc-100">
-                        {!! \App\Support\CleanHtml::clean($ticket->description) !!}
-                    </div>
-                </div>
-            </div>
-
-            {{-- Attachments --}}
-            @if ($attachments->isNotEmpty())
-                <div class="relative mb-7 pl-16">
-                    <div
-                        class="rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-900/70">
-                        <p class="mb-3 text-sm font-bold text-zinc-900 dark:text-white">
-                            {{ __('Lampiran') }} ({{ $attachments->count() }})
-                        </p>
-
-                        @php
-                            $previewMimes = [
-                                'image/jpeg',
-                                'image/png',
-                                'image/gif',
-                                'image/webp',
-                                'image/svg+xml',
-                                'image/bmp',
-                            ];
-                        @endphp
-
-                        <div class="space-y-2">
-                            @foreach ($attachments as $file)
-                                <div
-                                    class="flex flex-col gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800 sm:flex-row sm:items-center sm:justify-between">
-                                    <div class="min-w-0">
-                                        <p class="truncate font-semibold text-zinc-900 dark:text-white">
-                                            {{ $file->filename }}
-                                        </p>
-                                        <p class="text-xs text-zinc-500 dark:text-zinc-400">
-                                            {{ number_format($file->size / 1024, 1) }} KB ·
-                                            {{ $file->uploadedBy?->name }}
-                                        </p>
-                                    </div>
-
-                                    <div class="flex shrink-0 items-center gap-3">
-                                        @if (in_array($file->mime_type, $previewMimes))
-                                            <button type="button" wire:click="previewAttachment({{ $file->id }})"
-                                                class="font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400">
-                                                {{ __('Preview') }}
-                                            </button>
-                                        @endif
-
-                                        <a href="{{ asset('storage/' . $file->path) }}" target="_blank"
-                                            class="font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400">
-                                            {{ __('Download') }}
-                                        </a>
-
-                                        @can('update', $ticket)
-                                            <button type="button" x-data="{}"
-                                                @click="
-                                                    $dispatch('confirm-open', {
-                                                        name: 'confirm-attachment-delete',
-                                                        title: '{{ __('Hapus Lampiran') }}',
-                                                        message: '{{ __('Yakin ingin menghapus lampiran ini?') }}',
-                                                        method: 'deleteAttachment',
-                                                        param: {{ $file->id }},
-                                                        variant: 'danger',
-                                                        confirmLabel: '{{ __('Ya') }}'
-                                                    });
-                                                    $nextTick(() => $flux.modal('confirm-attachment-delete').show());
-                                                "
-                                                class="font-medium text-rose-600 hover:text-rose-700 dark:text-rose-400">
-                                                {{ __('Hapus') }}
-                                            </button>
-                                        @endcan
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-                </div>
-            @endif
-
-            {{-- New Reply Alert --}}
-            @if ($hasNewComments)
-                <div
-                    class="mb-7 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700 dark:border-blue-800/50 dark:bg-blue-950/50 dark:text-blue-300">
-                    {{ __('Ada balasan baru.') }}
-                </div>
-            @endif
-
-            {{-- Replies --}}
-            <div class="space-y-7">
-                @forelse ($comments as $reply)
-                    @php
-                        $replyUserName = $reply->user->name;
-                        $replyInitial = strtoupper(substr($replyUserName ?: 'U', 0, 1));
-                    @endphp
-
-                    <div class="relative pl-16">
-                        <div
-                            class="absolute left-0 top-0 flex h-14 w-14 items-center justify-center rounded-full bg-sky-100 text-lg font-semibold text-sky-700 ring-1 ring-sky-200 dark:bg-sky-950/50 dark:text-sky-300 dark:ring-sky-800/70">
-                            {{ $replyInitial }}
-                        </div>
-
-                        <div class="mb-3 flex flex-wrap items-center gap-x-2 gap-y-1">
-                            <span class="font-bold text-zinc-950 dark:text-white">
-                                {{ $replyUserName }}
-                            </span>
-
-                            <span class="text-sm text-zinc-500 dark:text-zinc-400">
-                                {{ __('berkata') }} {{ $reply->created_at->diffForHumans() }}
-                            </span>
-
-                            @if ($reply->is_internal)
-                                <span
-                                    class="rounded-full bg-orange-100 px-2 py-0.5 text-xs font-bold text-orange-700 ring-1 ring-orange-200 dark:bg-orange-950/50 dark:text-orange-300 dark:ring-orange-800/70">
-                                    {{ __('Internal') }}
-                                </span>
-                            @endif
-                        </div>
-
-                        <div
-                            class="relative rounded-lg border border-zinc-300 bg-white px-5 py-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-                            <div
-                                class="absolute -left-2 top-5 h-4 w-4 rotate-45 border-b border-l border-zinc-300 bg-white dark:border-zinc-700 dark:bg-zinc-900">
-                            </div>
-
-                            {{-- <p class="whitespace-pre-line text-[15px] leading-7 text-zinc-900 dark:text-zinc-100">
-                                {{ $reply->comment }}
-                            </p> --}}
-                            <div class="trix-content text-[15px] leading-7 text-zinc-900 dark:text-zinc-100">
-                                {!! \App\Support\CleanHtml::clean($reply->comment) !!}
-                            </div>
-                        </div>
-                    </div>
-                @empty
-                    <div class="relative mb-7 pl-16">
-                        <div
-                            class="absolute left-0 top-0 flex h-14 w-14 items-center justify-center rounded-full bg-zinc-100 text-lg font-semibold text-zinc-500 ring-1 ring-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:ring-zinc-700">
-                            …
-                        </div>
-
-                        <div
-                            class="rounded-lg border border-dashed border-zinc-300 bg-zinc-50 px-5 py-4 text-sm text-zinc-500 dark:border-zinc-700 dark:bg-zinc-900/60 dark:text-zinc-400">
-                            {{ __('Belum ada balasan.') }}
-                        </div>
-                    </div>
-                @endforelse
-            </div>
-
-            {{-- Reply Form --}}
-            @can('comment', $ticket)
-                @php
-                    $currentUserName = auth()->user()?->name ?? 'User';
-                    $currentInitial = strtoupper(substr($currentUserName, 0, 1));
-                @endphp
-
-                <div class="relative mt-7 pl-16">
-                    <div
-                        class="absolute left-0 top-0 flex h-14 w-14 items-center justify-center rounded-full bg-blue-100 text-lg font-semibold text-blue-700 ring-1 ring-blue-200 dark:bg-blue-950/50 dark:text-blue-300 dark:ring-blue-800/70">
-                        {{ $currentInitial }}
-                    </div>
-
-                    <div class="mb-3">
-                        <span class="font-bold text-zinc-950 dark:text-white">
-                            {{ $currentUserName }}
-                        </span>
-                    </div>
-
-                    <form wire:submit="addComment"
-                        class="relative rounded-lg border border-zinc-300 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-                        <div
-                            class="absolute -left-2 top-5 h-4 w-4 rotate-45 border-b border-l border-zinc-300 bg-white dark:border-zinc-700 dark:bg-zinc-900">
-                        </div>
-
-                        @can('commentInternal', $ticket)
-                            <label class="mb-3 flex items-center gap-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                                <input type="checkbox" wire:model="isInternal"
-                                    class="rounded border-zinc-300 bg-white dark:border-zinc-600 dark:bg-zinc-800" />
-                                {{ __('Balasan Internal') }}
-                            </label>
-                        @endcan
-
-                        <x-trix-editor id="ticket-reply-editor" wire:model="comment"
-                            placeholder="{{ __('Tulis balasan untuk ticket ini...') }}" />
-
-                        <flux:error name="comment" />
-
-                        <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                            @can('update', $ticket)
-                                <form wire:submit="uploadAttachment" class="flex items-center gap-2">
-                                    <input type="file" wire:model="attachment"
-                                        class="block max-w-xs text-sm text-zinc-600 file:mr-3 file:rounded-lg file:border-0 file:bg-zinc-100 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-zinc-700 hover:file:bg-zinc-200 dark:text-zinc-400 dark:file:bg-zinc-800 dark:file:text-zinc-300" />
-                                    <flux:button type="button" wire:click="uploadAttachment" variant="filled" size="sm"
-                                        wire:loading.attr="disabled" wire:target="attachment">
-                                        {{ __('Upload') }}
-                                    </flux:button>
-                                </form>
-                            @endcan
-
-                            <div class="flex items-center gap-2">
-                                <flux:button type="button" variant="filled" wire:click="$set('comment', '')">
-                                    {{ __('Batal') }}
-                                </flux:button>
-
-                                <flux:button type="submit" variant="primary" wire:loading.attr="disabled">
-                                    {{ __('Membalas') }}
-                                </flux:button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
+                        $nextTick(() => $flux.modal('confirm-ticket-delete').show());
+                    ">{{ __('Hapus') }}</button>
             @endcan
         </div>
 
-        {{-- Right Sidebar --}}
-        <div class="space-y-5 xl:sticky xl:top-5 xl:self-start">
-            {{-- Ringkasan Ticket --}}
-            <div
-                class="overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-                <div class="border-b border-zinc-100 px-5 py-5 dark:border-zinc-800">
-                    <div class="flex items-start justify-between gap-4">
-                        <div>
-                            <h2 class="text-lg font-semibold text-zinc-900 dark:text-white">
-                                {{ __('Ringkasan Ticket') }}
-                            </h2>
-                            <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                                {{ __('Informasi utama ticket') }}
-                            </p>
-                        </div>
-
-                        <div class="flex flex-wrap justify-end gap-2">
-                            <span
-                                class="inline-flex items-center rounded-xl px-3 py-1 text-xs font-bold ring-1 ring-inset {{ $statusNoticeClasses }}">
-                                {{ str_replace('_', ' ', $ticket->status) }}
-                            </span>
-
-                            <span
-                                class="inline-flex items-center rounded-xl px-3 py-1 text-xs font-bold ring-1 ring-inset {{ $priorityClasses }}">
-                                {{ $ticket->priority }}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="space-y-4 p-5">
-                    <div class="flex items-start gap-3">
-                        <div
-                            class="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-xl bg-zinc-50 text-zinc-500 ring-1 ring-inset ring-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:ring-zinc-700">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="size-4.5" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M15.75 7.5a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.5 20.25a7.5 7.5 0 0 1 15 0" />
-                            </svg>
-                        </div>
-
-                        <div class="min-w-0 flex-1">
-                            <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                                {{ __('Ditangani oleh') }}
-                            </p>
-                            <p class="mt-1 truncate text-sm font-semibold text-zinc-900 dark:text-white">
-                                {{ $currentAssignment?->assignedTo?->name ?? __('Belum ditugaskan') }}
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="flex items-start gap-3">
-                        <div
-                            class="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-xl bg-zinc-50 text-zinc-500 ring-1 ring-inset ring-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:ring-zinc-700">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="size-4.5" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                            </svg>
-                        </div>
-
-                        <div class="min-w-0 flex-1">
-                            <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                                {{ __('Pelapor') }}
-                            </p>
-                            <p class="mt-1 truncate text-sm font-semibold text-zinc-900 dark:text-white">
-                                {{ $requesterName }}
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="flex items-start gap-3">
-                        <div
-                            class="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-xl bg-zinc-50 text-zinc-500 ring-1 ring-inset ring-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:ring-zinc-700">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="size-4.5" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M3.75 21h16.5M4.5 3h15m-13.5 0v18m11.5-18v18M8.25 7.5h7.5m-7.5 4.5h7.5m-7.5 4.5h7.5" />
-                            </svg>
-                        </div>
-
-                        <div class="min-w-0 flex-1">
-                            <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                                {{ __('Departemen') }}
-                            </p>
-                            <p class="mt-1 truncate text-sm font-semibold text-zinc-900 dark:text-white">
-                                {{ $ticket->department?->name ?? '-' }}
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="flex items-start gap-3">
-                        <div
-                            class="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-xl bg-zinc-50 text-zinc-500 ring-1 ring-inset ring-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:ring-zinc-700">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="size-4.5" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M5.25 7.5 12 3.75 18.75 7.5 12 11.25 5.25 7.5Z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 12 12 15.75 18.75 12" />
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M5.25 16.5 12 20.25 18.75 16.5" />
-                            </svg>
-                        </div>
-
-                        <div class="min-w-0 flex-1">
-                            <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                                {{ __('Kategori') }}
-                            </p>
-                            <p class="mt-1 text-sm font-semibold text-zinc-900 dark:text-white">
-                                {{ $ticket->category?->name ?? '-' }}
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="flex items-start gap-3">
-                        <div
-                            class="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-xl bg-zinc-50 text-zinc-500 ring-1 ring-inset ring-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:ring-zinc-700">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="size-4.5" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z" />
-                            </svg>
-                        </div>
-
-                        <div class="min-w-0 flex-1">
-                            <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                                {{ __('Dibuat') }}
-                            </p>
-                            <p class="mt-1 text-sm font-semibold text-zinc-900 dark:text-white">
-                                {{ $ticket->created_at->format('d M Y H:i') }}
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
-                        <div
-                            class="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 dark:border-blue-500/20 dark:bg-blue-500/10">
-                            <div class="flex items-center gap-2">
-                                <div
-                                    class="flex size-8 items-center justify-center rounded-xl bg-white text-blue-600 dark:bg-blue-500/10 dark:text-blue-300">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="size-4.5" fill="none"
-                                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M12 6v6l4 2m6-2a10 10 0 1 1-20 0 10 10 0 0 1 20 0Z" />
-                                    </svg>
-                                </div>
-
-                                <div>
-                                    <p class="text-xs font-semibold text-blue-700 dark:text-blue-300">
-                                        {{ __('Umur Ticket') }}
-                                    </p>
-                                    <p class="mt-0.5 text-sm font-bold text-zinc-900 dark:text-white">
-                                        {{ $ticket->created_at->diffForHumans(null, true) }}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div
-                            class="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 dark:border-blue-500/20 dark:bg-blue-500/10">
-                            <div class="flex items-center gap-2">
-                                <div
-                                    class="flex size-8 items-center justify-center rounded-xl bg-white text-blue-600 dark:bg-blue-500/10 dark:text-blue-300">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="size-4.5" fill="none"
-                                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182" />
-                                    </svg>
-                                </div>
-
-                                <div>
-                                    <p class="text-xs font-semibold text-blue-700 dark:text-blue-300">
-                                        {{ __('Update Terakhir') }}
-                                    </p>
-                                    <p class="mt-0.5 text-sm font-bold text-zinc-900 dark:text-white">
-                                        {{ $ticket->updated_at->format('d M H:i') }}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+        {{-- Status notice --}}
+        @if ($isClosed)
+            <div class="notice is-closed">
+                <div class="font-bold">{{ __('Ticket Closed') }}</div>
+                <div class="mt-0.5">
+                    {{ __('Ticket ini sudah ditutup.') }}
+                    @unless ($isSupport)
+                        {{ __('Jika masalah belum selesai, silakan') }}
+                        <a href="{{ route('tickets.create') }}" wire:navigate>{{ __('buat ticket baru') }}</a>.
+                    @endunless
                 </div>
             </div>
-
-            {{-- Penanggung Jawab --}}
-            @can('assign', $ticket)
-                <div id="assign-panel"
-                    class="overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-                    <div class="border-b border-zinc-100 px-5 py-5 dark:border-zinc-800">
-                        <h2 class="text-lg font-semibold text-zinc-900 dark:text-white">
-                            {{ __('Penanggung Jawab') }}
-                        </h2>
-                        <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                            {{ $currentAssignment ? __('Ticket saat ini sudah ditangani agent.') : __('Ticket belum ditugaskan ke agent.') }}
-                        </p>
-                    </div>
-
-                    <div class="space-y-4 p-5">
-                        <div @class([
-                            'rounded-2xl border px-4 py-3',
-                            'border-emerald-200 bg-emerald-50 dark:border-emerald-500/20 dark:bg-emerald-500/10' => $currentAssignment,
-                            'border-amber-200 bg-amber-50 dark:border-amber-500/20 dark:bg-amber-500/10' => !$currentAssignment,
-                        ])>
-                            <div class="flex items-center gap-3">
-                                <div @class([
-                                    'flex size-9 shrink-0 items-center justify-center rounded-xl',
-                                    'bg-white text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300' => $currentAssignment,
-                                    'bg-white text-amber-600 dark:bg-amber-500/10 dark:text-amber-300' => !$currentAssignment,
-                                ])>
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="size-4.5" fill="none"
-                                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M15.75 7.5a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.5 20.25a7.5 7.5 0 0 1 15 0" />
-                                    </svg>
-                                </div>
-
-                                <div class="min-w-0">
-                                    <p @class([
-                                        'text-xs font-semibold uppercase tracking-wide',
-                                        'text-emerald-700 dark:text-emerald-300' => $currentAssignment,
-                                        'text-amber-700 dark:text-amber-300' => !$currentAssignment,
-                                    ])>
-                                        {{ __('Agent Saat Ini') }}
-                                    </p>
-                                    <p class="mt-0.5 truncate text-sm font-bold text-zinc-900 dark:text-white">
-                                        {{ $currentAssignment?->assignedTo?->name ?? __('Belum ditugaskan') }}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <form wire:submit="assign" class="space-y-3">
-                            <flux:field>
-                                <flux:select wire:model="assignedUserId"
-                                    class="h-12 rounded-2xl dark:bg-zinc-950 dark:border-zinc-700/50 dark:text-white">
-                                    <option value="">{{ __('Pilih agent...') }}</option>
-
-                                    @foreach ($agents as $agent)
-                                        <option value="{{ $agent->id }}">
-                                            {{ $agent->name }} ({{ $agent->department?->name ?? '-' }})
-                                        </option>
-                                    @endforeach
-                                </flux:select>
-
-                                <flux:error name="assignedUserId" />
-                            </flux:field>
-
-                            <flux:button type="submit" variant="primary" class="w-full rounded-2xl">
-                                {{ $currentAssignment ? __('Ubah Agent') : __('Tugaskan Ticket') }}
-                            </flux:button>
-                        </form>
-                    </div>
+        @else
+            <div class="notice">
+                <div class="font-bold">{{ __('Ticket :status', ['status' => $prettify($ticket->status)]) }}</div>
+                <div class="mt-0.5">
+                    @if ($ticket->status === 'IN_PROGRESS')
+                        {{ __('Ticket sedang dikerjakan oleh :agent.', ['agent' => $agentName ?? __('agent')]) }}
+                    @elseif ($ticket->status === 'RESOLVED')
+                        {{ __('Ticket sudah diselesaikan dan menunggu penutupan.') }}
+                    @elseif ($latestHistory?->action === 'reopened')
+                        {{ __('Ticket dibuka kembali oleh :name pada :date dan menunggu penanganan agent.', ['name' => $latestHistory->performedBy?->name ?? __('System'), 'date' => $latestHistory->created_at->format('d M Y H:i')]) }}
+                    @elseif ($agentName)
+                        {{ __('Ticket sudah ditugaskan ke :agent dan menunggu penanganan.', ['agent' => $agentName]) }}
+                    @else
+                        {{ __('Ticket sudah diterima dan menunggu ditugaskan ke agent.') }}
+                        @if ($user->can('delete', $ticket) && ! $isSupport)
+                            {{ __('Selama belum ditangani, ticket ini masih bisa Anda hapus.') }}
+                        @endif
+                    @endif
                 </div>
-            @endcan
+            </div>
+        @endif
 
-            {{-- Riwayat Ticket --}}
-            <div
-                class="overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-                <div
-                    class="flex items-start justify-between gap-3 border-b border-zinc-100 px-5 py-5 dark:border-zinc-800">
-                    <div>
-                        <h2 class="text-lg font-semibold text-zinc-900 dark:text-white">
-                            {{ __('Riwayat Ticket') }}
-                        </h2>
-                        <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                            {{ __('Aktivitas terbaru terkait ticket ini') }}
-                        </p>
-                    </div>
+        {{-- Header --}}
+        <x-panel :title="__('Header Ticket')">
+            <div class="kv">
+                <div class="kv-k kv-first">{{ __('Judul') }}</div>
+                <div class="kv-v kv-first kv-span5"><b>{{ $ticket->title }}</b></div>
 
-                    @if ($histories->isNotEmpty())
-                        <span
-                            class="shrink-0 rounded-xl bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 ring-1 ring-inset ring-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:ring-amber-500/20">
-                            {{ __('Update terbaru') }}
-                        </span>
+                <div class="kv-k">{{ __('No. Ticket') }}</div>
+                <div class="kv-v"><i>{{ $ticket->ticket_number }}</i></div>
+                <div class="kv-k">{{ __('Status') }}</div>
+                <div class="kv-v"><x-status-pill :status="$ticket->status" /></div>
+                <div class="kv-k">{{ __('Prioritas') }}</div>
+                <div class="kv-v"><x-priority-dot :priority="$ticket->priority" /></div>
+
+                <div class="kv-k">{{ __('Pelapor') }}</div>
+                <div class="kv-v">{{ $requesterName }}</div>
+                <div class="kv-k">{{ __('Departemen') }}</div>
+                <div class="kv-v">
+                    @if ($ticket->department)
+                        <a href="{{ route('tickets.index', ['departmentFilter' => $ticket->department_id]) }}" wire:navigate class="no-underline">{{ $ticket->department->name }}</a>
+                    @else
+                        -
+                    @endif
+                </div>
+                <div class="kv-k">{{ __('Kategori') }}</div>
+                <div class="kv-v">
+                    @if ($ticket->category)
+                        <a href="{{ route('tickets.index', ['categoryFilter' => $ticket->category_id]) }}" wire:navigate class="no-underline">{{ $ticket->category->name }}</a>
+                    @else
+                        -
                     @endif
                 </div>
 
-                <div class="max-h-[460px] overflow-y-auto p-5">
-                    <div class="relative space-y-5 border-l border-zinc-200 pl-5 dark:border-zinc-800">
-                        @forelse ($histories as $history)
-                            @php
-                                $isLatest = $history->id === $latestHistoryId;
+                <div class="kv-k">{{ __('Ditangani oleh') }}</div>
+                <div class="kv-v">
+                    @if ($agentName)
+                        {{ $agentName }}
+                    @else
+                        <span class="text-muted">{{ __('Belum ditugaskan') }}</span>
+                    @endif
+                </div>
+                <div class="kv-k">{{ __('Dibuat') }}</div>
+                <div class="kv-v">{{ $ticket->created_at->format('d M Y H:i') }} · {{ $ticket->created_at->diffForHumans(null, true) }}</div>
+                <div class="kv-k">{{ __('Update terakhir') }}</div>
+                <div class="kv-v">{{ $ticket->updated_at->format('d M Y H:i') }}</div>
+            </div>
+        </x-panel>
 
-                                $actionLabel = match ($history->action) {
-                                    'created' => 'Ticket dibuat',
-                                    'updated' => 'Ticket diperbarui',
-                                    'assigned' => 'Ticket ditugaskan',
-                                    'status_changed' => 'Status diubah',
-                                    'comment_added' => 'Balasan ditambahkan',
-                                    'closed' => 'Ticket ditutup',
-                                    'reopened' => 'Ticket dibuka kembali',
-                                    default => ucfirst(str_replace('_', ' ', $history->action)),
-                                };
+        {{-- Conversation --}}
+        <x-panel :title="__('Percakapan (:count)', ['count' => $comments->count() + 1])">
+            <div class="thread">
+                @if ($hasNewComments)
+                    <div class="notice">{{ __('Ada balasan baru.') }}</div>
+                @endif
 
-                                $dotClass = match ($history->action) {
-                                    'created' => 'bg-blue-500',
-                                    'assigned' => 'bg-emerald-500',
-                                    'status_changed' => 'bg-amber-500',
-                                    'closed' => 'bg-rose-500',
-                                    'reopened' => 'bg-sky-500',
-                                    default => 'bg-zinc-400',
-                                };
-                            @endphp
+                <x-thread-message :name="$requesterName" color="#2f62c9" role="reporter"
+                    :when="__('dilaporkan').' '.$ticket->created_at->diffForHumans()">
+                    <div class="bubble">
+                        <div class="trix-content">{!! \App\Support\CleanHtml::clean($ticket->description) !!}</div>
 
-                            <div class="relative">
-                                <span @class([
-                                    'absolute -left-[29px] top-1.5 flex size-4 rounded-full border-2 border-white dark:border-zinc-900',
-                                    'bg-amber-500' => $isLatest,
-                                    $dotClass => !$isLatest,
-                                ])></span>
+                        @foreach ($attachments as $file)
+                            <div class="mt-3">
+                                @if (in_array($file->mime_type, $previewMimes))
+                                    <button type="button" wire:click="previewAttachment({{ $file->id }})"
+                                        class="mb-2.5 flex h-[200px] w-full cursor-zoom-in items-center justify-center overflow-hidden rounded-md border border-dashed border-[#aeb8c8] bg-kv p-0"
+                                        aria-label="{{ __('Preview') }} {{ $file->filename }}">
+                                        <img src="{{ asset('storage/'.$file->path) }}" alt="{{ $file->filename }}" class="max-h-full max-w-full object-contain">
+                                    </button>
+                                @endif
 
-                                <div @class([
-                                    'rounded-2xl border p-4 transition',
-                                    'border-amber-200 bg-amber-50/80 shadow-sm dark:border-amber-500/20 dark:bg-amber-500/10' => $isLatest,
-                                    'border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950/50' => !$isLatest,
-                                ])>
-                                    <div class="flex items-start justify-between gap-3">
-                                        <div class="min-w-0">
-                                            <div class="flex flex-wrap items-center gap-2">
-                                                <p @class([
-                                                    'text-sm font-semibold',
-                                                    'text-amber-950 dark:text-amber-100' => $isLatest,
-                                                    'text-zinc-900 dark:text-white' => !$isLatest,
-                                                ])>
-                                                    {{ $history->performedBy?->name ?? __('System') }}
-                                                </p>
+                                <div class="flex flex-wrap items-center gap-x-3 text-sm">
+                                    <a href="{{ asset('storage/'.$file->path) }}" target="_blank">{{ $file->filename }} {{ number_format($file->size / 1024, 2) }} KB</a>
 
-                                                @if ($isLatest)
-                                                    <span
-                                                        class="rounded-xl bg-amber-100 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-amber-700 ring-1 ring-inset ring-amber-200 dark:bg-amber-500/20 dark:text-amber-200 dark:ring-amber-400/30">
-                                                        {{ __('Terbaru') }}
-                                                    </span>
-                                                @endif
-                                            </div>
-
-                                            <p @class([
-                                                'mt-1 text-sm',
-                                                'text-amber-800 dark:text-amber-200/90' => $isLatest,
-                                                'text-zinc-600 dark:text-zinc-400' => !$isLatest,
-                                            ])>
-                                                {{ $actionLabel }}
-
-                                                @if ($history->old_value && $history->new_value)
-                                                    :
-                                                    <span class="font-semibold">
-                                                        {{ $history->old_value }}
-                                                    </span>
-                                                    →
-                                                    <span class="font-semibold">
-                                                        {{ $history->new_value }}
-                                                    </span>
-                                                @endif
-                                            </p>
-                                        </div>
-
-                                        <span @class([
-                                            'shrink-0 text-xs',
-                                            'text-amber-700/80 dark:text-amber-300/80' => $isLatest,
-                                            'text-zinc-500 dark:text-zinc-500' => !$isLatest,
-                                        ])>
-                                            {{ $history->created_at->format('d M H:i') }}
-                                        </span>
-                                    </div>
+                                    @can('update', $ticket)
+                                        <button type="button" x-data class="cursor-pointer border-0 bg-transparent p-0 text-[13px] font-semibold text-danger hover:text-danger-hover"
+                                            @click="
+                                                $dispatch('confirm-open', {
+                                                    name: 'confirm-attachment-delete',
+                                                    title: '{{ __('Hapus Lampiran') }}',
+                                                    message: '{{ __('Yakin ingin menghapus lampiran ini?') }}',
+                                                    method: 'deleteAttachment',
+                                                    param: {{ $file->id }},
+                                                    variant: 'danger',
+                                                    confirmLabel: '{{ __('Ya') }}'
+                                                });
+                                                $nextTick(() => $flux.modal('confirm-attachment-delete').show());
+                                            ">{{ __('Hapus') }}</button>
+                                    @endcan
                                 </div>
                             </div>
-                        @empty
-                            <div
-                                class="rounded-2xl border border-dashed border-zinc-300 px-4 py-8 text-center dark:border-zinc-700">
-                                <p class="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                                    {{ __('Belum ada riwayat') }}
-                                </p>
-                                <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                                    {{ __('Aktivitas ticket akan muncul di sini.') }}
-                                </p>
-                            </div>
-                        @endforelse
+                        @endforeach
                     </div>
-                </div>
+                </x-thread-message>
+
+                @forelse ($comments as $reply)
+                    @php $fromReporter = $reply->user_id === $ticket->requester_id; @endphp
+
+                    <x-thread-message :name="$reply->user->name" :color="$fromReporter ? '#2f62c9' : '#475569'"
+                        :role="$fromReporter ? 'reporter' : 'agent'" :internal="$reply->is_internal"
+                        :when="($reply->is_internal ? __('catatan internal').' · ' : __('berkata').' ').$reply->created_at->diffForHumans()">
+                        <div @class(['bubble', 'is-internal' => $reply->is_internal])>
+                            <div class="trix-content">{!! \App\Support\CleanHtml::clean($reply->comment) !!}</div>
+                        </div>
+                    </x-thread-message>
+                @empty
+                    <div class="empty-note">{{ __('Belum ada balasan.') }}</div>
+                @endforelse
+
+                @if ($isClosed)
+                    <div class="empty-note">{{ __('Ticket sudah ditutup, balasan baru tidak dapat ditambahkan.') }}</div>
+                @elseif ($user->can('comment', $ticket))
+                    <x-thread-message :name="$user->name" color="#c2610c"
+                        :when="$comments->isEmpty() ? __('tambah informasi') : __('balas ticket ini')">
+                        <form wire:submit="addComment" class="bubble print:hidden">
+                            @can('commentInternal', $ticket)
+                                <label class="flex items-center gap-2 text-sm font-medium text-ink-label">
+                                    <input type="checkbox" wire:model="isInternal"> {{ __('Balasan Internal') }}
+                                </label>
+                            @endcan
+
+                            <x-trix-editor id="ticket-reply-editor" wire:model="comment"
+                                placeholder="{{ __('Tulis balasan untuk ticket ini...') }}" />
+
+                            @error('comment')
+                                <p class="mt-2 mb-0 text-[13px] text-danger">{{ $message }}</p>
+                            @enderror
+
+                            @can('update', $ticket)
+                                <div class="mt-3.5 flex flex-wrap items-center gap-2.5 text-[13px] text-muted">
+                                    <input type="file" wire:model="attachment" class="max-w-full text-[13px] file:mr-3 file:cursor-pointer file:rounded-md file:border file:border-neutral-line file:bg-neutral file:px-3 file:py-1 file:text-[13px] file:font-semibold file:text-ink">
+                                    <button type="button" class="btn btn-n !h-8 !px-3" wire:click="uploadAttachment"
+                                        wire:loading.attr="disabled" wire:target="attachment">{{ __('Upload') }}</button>
+                                    @error('attachment')
+                                        <span class="text-danger">{{ $message }}</span>
+                                    @enderror
+                                </div>
+                            @endcan
+
+                            <div class="mt-3.5 flex gap-2.5">
+                                <button type="button" class="btn btn-n" wire:click="$set('comment', '')">{{ __('Batal') }}</button>
+                                <button type="submit" class="btn btn-p" wire:loading.attr="disabled">{{ __('Membalas') }}</button>
+                            </div>
+                        </form>
+                    </x-thread-message>
+                @endif
+            </div>
+        </x-panel>
+    </div>
+
+    {{-- History --}}
+    <aside class="max-w-[340px] flex-[1_1_300px] self-start min-[701px]:sticky min-[701px]:top-4" aria-label="{{ __('Riwayat ticket') }}">
+        <div class="rounded-lg bg-white px-5 pt-[22px] pb-1.5">
+            <h2 class="m-0 text-[22px] font-bold text-ink-strong">{{ $ticket->ticket_number }}</h2>
+            <div class="mt-1 text-sm text-muted">{{ __('Riwayat aktivitas') }} · {{ $ticket->title }}</div>
+
+            <div class="relative mt-5 pl-6 before:absolute before:top-1.5 before:bottom-5 before:left-1 before:w-0.5 before:bg-[#d1d5db] before:content-['']">
+                @forelse ($histories as $history)
+                    @php $isLatest = $history->id === $latestHistoryId; @endphp
+
+                    <div @class([
+                        'relative grid grid-cols-[1fr_auto] gap-x-3 gap-y-[3px] pb-5 before:absolute before:top-[5px] before:-left-6 before:size-2.5 before:rounded-full before:content-[\'\']',
+                        'before:bg-[#1a73e8]' => $isLatest,
+                        'before:bg-[#9ca3af]' => ! $isLatest,
+                    ])>
+                        <div @class(['text-sm', 'text-link' => $isLatest, 'text-muted' => ! $isLatest])>{{ $history->created_at->format('d M Y') }}</div>
+                        <div class="text-right text-[13px] text-muted italic">{{ $history->created_at->format('H:i') }} WIB</div>
+                        <div class="text-sm leading-[1.45] text-ink-strong">
+                            {{ __($actionLabels[$history->action] ?? ucfirst(str_replace('_', ' ', $history->action))) }}@if ($history->old_value && $history->new_value && $history->old_value !== $history->new_value): {{ $prettify($history->old_value) }} → {{ $prettify($history->new_value) }}@endif
+                        </div>
+                        <div class="max-w-[110px] text-right text-[13px] text-ink-label italic">{{ $history->performedBy?->name ?? __('System') }}</div>
+                    </div>
+                @empty
+                    <div class="pb-5 text-sm text-muted">{{ __('Belum ada riwayat') }}</div>
+                @endforelse
             </div>
         </div>
-    </div>
-    {{-- Attachment Preview Modal --}}
+    </aside>
+
+</div>
+
+    <x-confirm-dialog name="confirm-ticket-delete" />
+    <x-confirm-dialog name="confirm-attachment-delete" />
+
+    {{-- Assign agent --}}
+    @can('assign', $ticket)
+        <flux:modal name="assign-agent" class="w-full max-w-md">
+            <form x-data
+                x-on:submit.prevent="$wire.assign().then(() => { if (! $wire.assignedUserId) { $flux.modal('assign-agent').close() } })"
+                class="flex flex-col gap-4">
+                <div>
+                    <h3 class="m-0 text-lg font-bold text-ink-strong">{{ $agentName ? __('Ubah Agent') : __('Tugaskan Ticket') }}</h3>
+                    <p class="mt-1 mb-0 text-sm text-muted">
+                        {{ __('Agent saat ini') }}: <b class="text-ink-strong">{{ $agentName ?? __('Belum ditugaskan') }}</b>
+                    </p>
+                </div>
+
+                <div>
+                    <label for="assigned-user" class="mb-1.5 block text-[11px] font-bold tracking-[.03em] text-ink-label uppercase">{{ __('Agent') }}</label>
+                    <select id="assigned-user" wire:model="assignedUserId" class="sel w-full">
+                        <option value="">{{ __('Pilih agent...') }}</option>
+                        @foreach ($agents as $agent)
+                            <option value="{{ $agent->id }}">{{ $agent->name }} ({{ $agent->department?->name ?? '-' }})</option>
+                        @endforeach
+                    </select>
+                    @error('assignedUserId')
+                        <p class="mt-1.5 mb-0 text-[13px] text-danger">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="flex justify-end gap-2.5">
+                    <button type="button" class="btn btn-n" x-on:click="$flux.modal('assign-agent').close()">{{ __('Batal') }}</button>
+                    <button type="submit" class="btn btn-p">{{ $agentName ? __('Ubah Agent') : __('Tugaskan Ticket') }}</button>
+                </div>
+            </form>
+        </flux:modal>
+    @endcan
+
+    {{-- Attachment preview --}}
     <flux:modal name="attachment-preview" class="max-w-4xl">
-        <div class="p-6">
-            <h3 class="mb-4 text-lg font-semibold text-zinc-900 dark:text-white">
-                {{ $previewName }}
-            </h3>
+        <div class="p-2">
+            <h3 class="mt-0 mb-4 text-lg font-bold text-ink-strong">{{ $previewName }}</h3>
 
             @if ($previewUrl)
-                <img src="{{ $previewUrl }}" alt="{{ $previewName }}"
-                    class="mx-auto max-h-[75vh] max-w-full rounded-lg">
+                <img src="{{ $previewUrl }}" alt="{{ $previewName }}" class="mx-auto max-h-[75vh] max-w-full rounded-lg">
             @endif
         </div>
     </flux:modal>

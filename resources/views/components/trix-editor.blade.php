@@ -123,6 +123,6 @@
         x-on:trix-change="sync()"
         x-on:trix-file-accept="validateFile($event)"
         x-on:trix-attachment-add="uploadAttachment($event.attachment)"
-        class="trix-content min-h-40 rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
+        class="trix-content"
     ></trix-editor>
 </div>

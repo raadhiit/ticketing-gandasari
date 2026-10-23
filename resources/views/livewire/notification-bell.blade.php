@@ -1,17 +1,17 @@
-<div class="relative" x-data="{ open: $wire.entangle('open'), position: {} }" @click.outside="open = false">
+<div class="flex min-w-0 shrink" x-data="{ open: $wire.entangle('open'), position: {} }" @click.outside="open = false">
     <button
         type="button"
         x-ref="trigger"
-        @click="if ({{ $sidebar ? 'true' : 'false' }} && !open) { const rect = $refs.trigger.getBoundingClientRect(); position = { top: rect.bottom + 4, left: rect.right + 4 }; }; open = !open; $wire.loadNotifications()"
-        class="relative flex items-center justify-center h-10 w-10 rounded-lg text-zinc-500 hover:text-zinc-700 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+        @click="if ({{ $sidebar ? 'true' : 'false' }} && !open) { const rect = $refs.trigger.getBoundingClientRect(); position = { top: rect.bottom + 4, left: Math.max(8, Math.min(rect.right + 4, window.innerWidth - 328)) }; }; open = !open; $wire.loadNotifications()"
+        class="rail-link" aria-label="{{ $unreadCount > 0 ? __('Notifikasi, :count baru', ['count' => $unreadCount]) : __('Notifikasi') }}" title="{{ __('Notifikasi') }}"
     >
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-5">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="rail-icon" aria-hidden="true">
             <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
             <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
         </svg>
 
         @if ($unreadCount > 0)
-            <span class="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-600 text-[10px] font-bold text-white leading-none">
+            <span class="absolute top-1 right-2 box-border flex h-4 min-w-4 items-center justify-center rounded-full bg-badge px-[3px] text-[10px] leading-none font-bold text-white">
                 {{ $unreadCount > 99 ? '99+' : $unreadCount }}
             </span>
         @endif
@@ -26,7 +26,7 @@
         x-transition:leave="transition ease-in duration-150"
         x-transition:leave-start="opacity-100 scale-100"
         x-transition:leave-end="opacity-0 scale-95"
-        class="{{ $sidebar ? 'fixed z-50' : 'absolute right-0 mt-2 z-50' }} w-80 rounded-xl border border-zinc-200 bg-white shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
+        class="fixed z-50 w-80 max-w-[calc(100vw-16px)] rounded-lg border border-bubble-line bg-white shadow-lg"
         @click.stop
     >
         <div class="flex items-center justify-between px-4 py-3 border-b border-zinc-200 dark:border-zinc-700">

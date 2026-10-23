@@ -1,43 +1,30 @@
-<section class="w-full">
-    @include('partials.settings-heading')
+<x-settings.layout>
+    <x-panel :title="__('Update password')">
+        <form wire:submit="updatePassword">
+            <div class="kv kv-form">
+                <div class="kv-k kv-first"><label for="s-current">{{ __('Password saat ini') }}</label><span class="text-required" aria-hidden="true">*</span></div>
+                <div class="kv-v kv-first kv-span3">
+                    <input id="s-current" type="password" wire:model="current_password" class="inp" required autocomplete="current-password">
+                    @error('current_password')<p class="hint !text-danger">{{ $message }}</p>@enderror
+                </div>
 
-    <flux:heading class="sr-only">{{ __('Security settings') }}</flux:heading>
+                <div class="kv-k"><label for="s-new">{{ __('Password baru') }}</label><span class="text-required" aria-hidden="true">*</span></div>
+                <div class="kv-v">
+                    <input id="s-new" type="password" wire:model="password" class="inp" required autocomplete="new-password"
+                        passwordrules="{{ \Illuminate\Validation\Rules\Password::defaults()->toPasswordRulesString() }}">
+                    <p class="hint">{{ __('Gunakan password yang panjang dan acak agar akun tetap aman.') }}</p>
+                    @error('password')<p class="hint !text-danger">{{ $message }}</p>@enderror
+                </div>
+                <div class="kv-k"><label for="s-confirm">{{ __('Konfirmasi password') }}</label><span class="text-required" aria-hidden="true">*</span></div>
+                <div class="kv-v">
+                    <input id="s-confirm" type="password" wire:model="password_confirmation" class="inp" required autocomplete="new-password"
+                        passwordrules="{{ \Illuminate\Validation\Rules\Password::defaults()->toPasswordRulesString() }}">
+                </div>
+            </div>
 
-    <x-settings.layout :heading="__('Update password')" :subheading="__('Ensure your account is using a long, random password to stay secure')">
-        <form method="POST" wire:submit="updatePassword" class="mt-6 space-y-6">
-            <flux:input
-                wire:model="current_password"
-                :label="__('Current password')"
-                type="password"
-                required
-                autocomplete="current-password"
-                viewable
-            />
-            <flux:input
-                wire:model="password"
-                :label="__('New password')"
-                type="password"
-                required
-                autocomplete="new-password"
-                passwordrules="{{ \Illuminate\Validation\Rules\Password::defaults()->toPasswordRulesString() }}"
-                viewable
-            />
-            <flux:input
-                wire:model="password_confirmation"
-                :label="__('Confirm password')"
-                type="password"
-                required
-                autocomplete="new-password"
-                passwordrules="{{ \Illuminate\Validation\Rules\Password::defaults()->toPasswordRulesString() }}"
-                viewable
-            />
-
-            <div class="flex items-center gap-4">
-                <flux:button variant="primary" type="submit" data-test="update-password-button">{{ __('Save') }}</flux:button>
+            <div class="flex justify-end border-t border-line px-4 py-3.5">
+                <button type="submit" class="btn btn-p" data-test="update-password-button">{{ __('Simpan') }}</button>
             </div>
         </form>
-
-
-    </x-settings.layout>
-
-</section>
+    </x-panel>
+</x-settings.layout>
